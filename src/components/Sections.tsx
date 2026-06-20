@@ -84,10 +84,14 @@ export function PlaceholderImg({ label, ratio = '4/5', palette, rotate = 0 }: Pl
     'couple photo': 'images/couple_hero.png',
     'Til & Deen · full-bleed couple photo': 'images/couple_hero.png',
     'first date': 'images/lagos_coffee.png',
+    'first meeting': 'images/first_meeting.png',
     'engagement': 'images/zuma_rock_proposal.png',
     'the proposal': 'images/zuma_rock_proposal.png',
+    'everyday walks': 'images/everyday_walks.png',
     'travels': 'images/travels.png',
+    'divine timing': 'images/divine_timing.png',
     'us': 'images/couple_hero.png',
+    'our love story': 'images/our_love_story.png',
     'family': 'images/venue.png',
   };
 
@@ -401,10 +405,10 @@ export function Countdown({ palette }: SectionProps) {
 export function OurStory({ palette }: SectionProps) {
   const { navy, gold, coral, ivory } = palette;
   const beats = [
-    { year: '2019', title: 'A chance hello', body: 'Nneka spilled coffee on Opeyemi at a Lagos co-working space. He insisted on paying for the shirt. She insisted on dinner.', imgLabel: 'first date', emoji: '☕' },
-    { year: '2021', title: 'Long-distance love', body: 'Abuja to London and back. Thirty-six flights. One very patient dog.', imgLabel: 'travels', emoji: '✈️' },
-    { year: '2024', title: 'The proposal', body: 'Sunset at Zuma Rock. A ring hidden in a jollof takeaway box. We said yes before the rice even got cold.', imgLabel: 'the proposal', emoji: '💍' },
-    { year: '2026', title: "We're here!", body: 'And we cannot wait to eat, cry, and dance with you all in Abuja.', imgLabel: 'us', emoji: '🎉' },
+    { year: 'Jan - Mar 2024', title: 'Divine Timing', body: 'I arrived in England on Jan 23rd—the same day Deen got the news that he passed his job interview. Exactly a month later, on Feb 23rd, he received his official offer, setting the stage for us to meet on March 23rd.', imgLabel: 'divine timing', emoji: '✈️' },
+    { year: 'Mar 23, 2024', title: 'Sea Life & A Tour Guide', body: 'A friend\'s double-date brought us together. Deen said, "Tell her to bring her beautiful friend too" — and that was me! We walked the city centre and visited Sea Life, where Deen became my personal tour guide.', imgLabel: 'first meeting', emoji: '🐠' },
+    { year: 'Spring - Sept 2024', title: '"Привет" & Consistent Walks', body: 'Deen messaged in Russian (knowing I studied in Ukraine) and consistently waited to walk me home from school with treats. Soon, we discovered we share a birth month—him on the 15th and me on the 5th!', imgLabel: 'everyday walks', emoji: '🍬' },
+    { year: 'Present Day', title: 'A Beautiful Journey', body: 'What started as a chance meeting, a city-centre walk, and a trip to Sea Life has become a beautiful love story. We smile looking at where we started and thank God for how it all began.', imgLabel: 'our love story', emoji: '❤️' },
   ];
   
   return (
