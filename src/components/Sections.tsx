@@ -1,7 +1,6 @@
 import React from 'react';
-import { 
-  Squiggle, Underline, Floral, Leaf, Sparkle, Dot, Heart 
-} from './Accents';
+import { toast } from 'react-toastify';
+import { Squiggle, Underline, Sparkle, Dot, Heart } from './Accents';
 
 export interface Palette {
   navy: string;
@@ -20,6 +19,8 @@ interface PlaceholderImgProps {
   ratio?: string;
   palette: Palette;
   rotate?: number;
+  objectPosition?: string;
+  customSrc?: string;
 }
 
 interface SectionHeaderProps {
@@ -30,7 +31,7 @@ interface SectionHeaderProps {
   align?: 'left' | 'center' | 'right';
 }
 
-interface SectionProps {
+export interface SectionProps {
   palette: Palette;
 }
 
@@ -41,12 +42,11 @@ interface HeroProps extends SectionProps {
 
 // ── Fade In On Scroll Wrapper ──
 export function FadeInSection({ children }: FadeInSectionProps) {
-  const [isVisible, setVisible] = React.useState(false);
+  const [isVisible, setVisible] = React.useState(() => typeof IntersectionObserver === 'undefined');
   const domRef = React.useRef<HTMLDivElement | null>(null);
   
   React.useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') {
-      setVisible(true);
       return;
     }
     const observer = new IntersectionObserver(entries => {
@@ -77,29 +77,35 @@ export function FadeInSection({ children }: FadeInSectionProps) {
 }
 
 // ── Upgraded Image Card ──
-export function PlaceholderImg({ label, ratio = '4/5', palette, rotate = 0 }: PlaceholderImgProps) {
-  const { navy, ivoryDeep, gold } = palette;
+export function PlaceholderImg({ label, ratio = '4/5', palette, rotate = 0, objectPosition, customSrc }: PlaceholderImgProps) {
+  const { navy, ivoryDeep } = palette;
   
-  const imageMap: Record<string, string> = {
-    'couple photo': 'images/couple_hero.png',
-    'Til & Deen · full-bleed couple photo': 'images/couple_hero.png',
-    'first date': 'images/lagos_coffee.png',
-    'first meeting': 'images/first_meeting.png',
-    'engagement': 'images/zuma_rock_proposal.png',
-    'the proposal': 'images/zuma_rock_proposal.png',
-    'everyday walks': 'images/everyday_walks.png',
-    'travels': 'images/travels.png',
-    'divine timing': 'images/divine_timing.png',
-    'us': 'images/couple_hero.png',
-    'our love story': 'images/our_love_story.png',
-    'family': 'images/venue.png',
+  const imageMap: Record<string, { src: string; pos?: string }> = {
+    'couple photo': { src: 'images/gallery/moment_57.jpeg', pos: 'center 20%' },
+    'nneka & opeyemi · full-bleed couple photo': { src: 'images/gallery/moment_57.jpeg', pos: 'center 20%' },
+    'first date': { src: 'images/gallery/moment_01.jpeg', pos: 'center 18%' },
+    'first meeting': { src: 'images/gallery/moment_01.jpeg', pos: 'center 18%' },
+    'sea life date': { src: 'images/gallery/moment_01.jpeg', pos: 'center 18%' },
+    'engagement': { src: 'images/gallery/moment_58.jpeg', pos: 'center 40%' },
+    'the proposal': { src: 'images/gallery/moment_51.jpeg', pos: 'center 20%' },
+    'everyday walks': { src: 'images/gallery/moment_50.jpeg', pos: 'center 25%' },
+    'walks & treats': { src: 'images/gallery/moment_50.jpeg', pos: 'center 25%' },
+    'travels': { src: 'images/gallery/moment_08.jpeg', pos: 'center 20%' },
+    'divine timing': { src: 'images/gallery/moment_37.jpeg', pos: 'center 15%' },
+    'us': { src: 'images/gallery/moment_37.jpeg', pos: 'center 15%' },
+    'our love story': { src: 'images/gallery/moment_58.jpeg', pos: 'center 40%' },
+    'celebration': { src: 'images/gallery/moment_27.jpeg', pos: 'center 25%' },
+    'celebration & venue': { src: 'images/gallery/moment_27.jpeg', pos: 'center 25%' },
+    'family': { src: 'images/gallery/moment_27.jpeg', pos: 'center 25%' },
   };
 
   const resolvedKey = Object.keys(imageMap).find(k => 
     k.toLowerCase() === label.toLowerCase() || 
     label.toLowerCase().includes(k.toLowerCase())
   );
-  const imgSrc = resolvedKey ? imageMap[resolvedKey] : null;
+  const matched = resolvedKey ? imageMap[resolvedKey] : null;
+  const imgSrc = customSrc || matched?.src || null;
+  const finalPos = objectPosition || matched?.pos || 'center 20%';
 
   if (imgSrc) {
     return (
@@ -120,7 +126,13 @@ export function PlaceholderImg({ label, ratio = '4/5', palette, rotate = 0 }: Pl
         <img 
           src={imgSrc} 
           alt={label} 
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover', 
+            objectPosition: finalPos,
+            display: 'block' 
+          }} 
         />
         <div style={{
           position: 'absolute', inset: 0,
@@ -156,8 +168,8 @@ export function PlaceholderImg({ label, ratio = '4/5', palette, rotate = 0 }: Pl
       position: 'relative',
       overflow: 'hidden',
     }}>
-      <div style={{ opacity: 0.12, position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Floral color={gold} size={130} />
+      <div aria-hidden="true" style={{ opacity: 0.08, position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond', serif", fontSize: 28, letterSpacing: 4, transform: 'rotate(-18deg)' }}>
+        TIL · DEEN
       </div>
       <span style={{ position: 'relative', zIndex: 1 }}>{label}</span>
     </div>
@@ -187,37 +199,23 @@ export function SectionHeader({ kicker, title, palette, accent, align = 'left' }
 // HERO — Floating animation leaves
 // ─────────────────────────────────────────────────────────────
 export function Hero({ palette, guestName, heroLayout }: HeroProps) {
-  const { navy, ivory, gold, coral } = palette;
-
-  const floatLeafStyle = (delay: string): React.CSSProperties => ({
-    position: 'absolute',
-    opacity: 0.35,
-    animation: 'floatLeaf 7s infinite ease-in-out',
-    animationDelay: delay,
-    pointerEvents: 'none',
-  });
-
-  const leafStyleBlock = (
-    <style>{`
-      @keyframes floatLeaf {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-12px) rotate(8deg); }
-      }
-    `}</style>
-  );
+  const { navy, ivory, ivoryDeep, gold, coral } = palette;
 
   if (heroLayout === 'photo') {
     return (
       <section style={{ position: 'relative', padding: '32px 22px 40px', background: ivory, overflow: 'hidden' }}>
-        {leafStyleBlock}
-        <div style={{ ...floatLeafStyle('0s'), top: 20, right: 10 }}><Leaf color={coral} size={65} /></div>
-        <div style={{ ...floatLeafStyle('2s'), bottom: 100, left: -10, transform: 'rotate(45deg)' }}><Leaf color={gold} size={75} /></div>
         
         <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: navy, opacity: 0.8, transform: 'rotate(-2deg)' }}>
           welcome, {guestName.split(' ')[0]}!
         </div>
         <div style={{ marginTop: 18, position: 'relative' }}>
-          <PlaceholderImg label="Til &amp; Deen · full-bleed couple photo" ratio="4/5" palette={palette}/>
+          <PlaceholderImg 
+            label="Til & Deen" 
+            customSrc="images/gallery/moment_57.jpeg" 
+            objectPosition="center 20%" 
+            ratio="4/5" 
+            palette={palette}
+          />
           <div style={{
             position: 'absolute', bottom: -12, right: -6, background: coral, borderRadius: '50%',
             width: 70, height: 70, border: `2px solid ${navy}`,
@@ -232,8 +230,8 @@ export function Hero({ palette, guestName, heroLayout }: HeroProps) {
         </div>
         <div style={{ marginTop: 28, textAlign: 'center' }}>
           <div style={{ fontFamily: "'Caveat', cursive", fontSize: 28, color: gold, transform: 'rotate(-2deg)' }}>the wedding of</div>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: navy, lineHeight: 1.05, marginTop: 4 }}>
-            Til <span style={{ fontFamily: "'Caveat', cursive", fontSize: 38, color: coral }}>&amp;</span> Deen
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: navy, lineHeight: .92, marginTop: 7 }}>
+            Til <span style={{ fontFamily: "'Caveat', cursive", fontSize: 31, color: coral }}>&amp;</span> Deen
           </div>
         </div>
       </section>
@@ -243,9 +241,6 @@ export function Hero({ palette, guestName, heroLayout }: HeroProps) {
   if (heroLayout === 'typographic') {
     return (
       <section style={{ background: ivory, padding: '70px 22px 50px', position: 'relative', overflow: 'hidden' }}>
-        {leafStyleBlock}
-        <div style={{ position: 'absolute', top: 30, left: -24, opacity: 0.35 }}><Floral color={gold} size={110}/></div>
-        <div style={{ position: 'absolute', bottom: 50, right: -15, opacity: 0.35, transform: 'rotate(-30deg)' }}><Leaf color={coral} size={90}/></div>
 
         <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ fontFamily: "'Caveat', cursive", fontSize: 26, color: gold, transform: 'rotate(-3deg)', marginBottom: 8 }}>we're getting married!</div>
@@ -274,33 +269,52 @@ export function Hero({ palette, guestName, heroLayout }: HeroProps) {
   }
 
   return (
-    <section style={{ background: ivory, padding: '36px 22px 36px', position: 'relative', overflow: 'hidden' }}>
-      {leafStyleBlock}
-      <div style={{ ...floatLeafStyle('1s'), top: 10, right: -10, transform: 'rotate(-20deg)' }}><Leaf color={gold} size={70} /></div>
-      
-      <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: navy, opacity: 0.8, transform: 'rotate(-2deg)' }}>
-        welcome, {guestName.split(' ')[0]}!
+    <section style={{ background: ivory, padding: '44px 22px 38px', position: 'relative', overflow: 'hidden' }}>
+
+      <div style={{
+        fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: gold, fontWeight: 700,
+        letterSpacing: 2.2, textTransform: 'uppercase', textAlign: 'center', marginBottom: 12
+      }}>
+        Welcome, {guestName.split(' ')[0]}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16, marginTop: 18, alignItems: 'center' }}>
-        <PlaceholderImg label="couple photo" ratio="3/4" palette={palette} rotate={-2.5}/>
-        <div style={{ paddingLeft: 4 }}>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, color: navy, lineHeight: 0.9, letterSpacing: -1.2 }}>
-            Til<br/>
-            <span style={{ fontFamily: "'Caveat', cursive", color: coral, fontSize: 36, display: 'inline-block', transform: 'rotate(-5deg) translateY(-2px)' }}>&amp;</span><br/>
-            Deen
+      <div style={{ textAlign: 'center', margin: '0 auto 24px', maxWidth: 520 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: navy, opacity: 0.62, letterSpacing: 1.8, textTransform: 'uppercase' }}>
+          Together with their families
+        </div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(42px, 10vw, 66px)', color: navy, lineHeight: 0.88, letterSpacing: -2, marginTop: 12 }}>
+          Til <span style={{ fontFamily: "'Caveat', cursive", color: gold, fontSize: '.62em', display: 'inline-block', margin: '0 3px' }}>&amp;</span> Deen
+        </div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: navy, opacity: 0.78, marginTop: 16 }}>
+          invite you to celebrate their wedding
+        </div>
+      </div>
+
+      <div style={{ position: 'relative', maxWidth: 560, margin: '0 auto' }}>
+        <div style={{ position: 'absolute', inset: '14px -8px -10px 14px', background: coral, opacity: 0.55, borderRadius: 4 }} />
+        <div style={{ position: 'relative', border: `1px solid ${navy}35`, overflow: 'hidden', borderRadius: 4, aspectRatio: '16/11', background: ivoryDeep }}>
+          <img
+            src="images/gallery/moment_57.jpeg"
+            alt="Nneka and Opeyemi"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <div style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, padding: '34px 18px 14px',
+            background: `linear-gradient(transparent, ${navy}D9)`, color: ivory,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12
+          }}>
+            <div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 8, letterSpacing: 1.6, textTransform: 'uppercase', opacity: 0.75 }}>Friday</div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22 }}>18 December 2026</div>
+            </div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', textAlign: 'right' }}>
+              Abuja<br/>Nigeria
+            </div>
           </div>
         </div>
       </div>
-      <div style={{ 
-        marginTop: 28, paddingTop: 20, 
-        borderTop: `1.8px dashed ${navy}28`, 
-        display: 'flex', justifyContent: 'space-between', 
-        fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600,
-        color: navy, letterSpacing: 2, textTransform: 'uppercase' 
-      }}>
-        <span>18 Dec 2026</span>
-        <span style={{ color: gold }}>·</span>
-        <span>Abuja, NG</span>
+
+      <div style={{ marginTop: 26, textAlign: 'center', fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: navy, letterSpacing: 1.4, textTransform: 'uppercase', opacity: 0.62 }}>
+        Scroll to discover the celebration
       </div>
     </section>
   );
@@ -315,85 +329,42 @@ export function Countdown({ palette }: SectionProps) {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-  const target = new Date('2026-12-18T16:00:00+01:00');
+  const target = new Date('2026-12-18T00:00:00+01:00');
   const diff = Math.max(0, target.getTime() - now.getTime());
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff / 3600000) % 24);
   const m = Math.floor((diff / 60000) % 60);
   const s = Math.floor((diff / 1000) % 60);
 
-  const { navy, ivory, gold } = palette;
-
-  const dial = (num: number, label: string, maxVal: number) => {
-    const r = 26;
-    const circ = 2 * Math.PI * r;
-    const offset = circ - (Math.min(num, maxVal) / maxVal) * circ;
-    
-    return (
-      <div style={{ 
-        display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1,
-        position: 'relative'
-      }}>
-        <div style={{ position: 'relative', width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="64" height="64" style={{ transform: 'rotate(-90deg)', position: 'absolute', inset: 0 }}>
-            <circle cx="32" cy="32" r={r} fill="none" stroke={`${ivory}12`} strokeWidth="2.5" />
-            <circle 
-              cx="32" 
-              cy="32" 
-              r={r} 
-              fill="none" 
-              stroke={gold} 
-              strokeWidth="2.5" 
-              strokeDasharray={circ} 
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 0.5s ease' }}
-            />
-          </svg>
-          <div style={{
-            fontFamily: "'DM Serif Display', serif", fontSize: 20, color: ivory, lineHeight: 1,
-            paddingTop: 1.5,
-          }}>
-            {String(num).padStart(2, '0')}
-          </div>
-        </div>
-        <div style={{ 
-          fontFamily: "'DM Sans', sans-serif", fontSize: 9.5, fontWeight: 700,
-          color: ivory, opacity: 0.65, letterSpacing: 1.5, textTransform: 'uppercase', 
-          marginTop: 8 
-        }}>{label}</div>
-      </div>
-    );
-  };
+  const { navy, ivoryDeep, gold, coral } = palette;
+  const units = [
+    { value: d, label: 'Days' },
+    { value: h, label: 'Hours' },
+    { value: m, label: 'Minutes' },
+    { value: s, label: 'Seconds' },
+  ];
 
   return (
-    <section style={{ 
-      background: `linear-gradient(135deg, ${navy} 0%, #1e3323 100%)`, 
-      padding: '28px 20px', 
-      position: 'relative', 
-      overflow: 'hidden' 
-    }}>
-      <div style={{ position: 'absolute', top: -10, left: -10, opacity: 0.15 }}><Floral color={gold} size={90}/></div>
-      <div style={{ 
-        fontFamily: "'Caveat', cursive", fontSize: 22, color: gold, 
-        textAlign: 'center', transform: 'rotate(-0.5deg)', marginBottom: 14,
-        letterSpacing: 0.5,
-      }}>counting down to our I do's...</div>
-      
-      <div className="glass-card" style={{ 
-        display: 'flex', 
-        padding: '16px 12px 14px', 
-        borderRadius: 20, 
-        gap: 6,
-        background: 'rgba(255, 255, 255, 0.05)',
-        border: '1px solid rgba(255, 255, 255, 0.08)'
-      }}>
-        {dial(d, 'days', 365)}
-        {dial(h, 'hours', 24)}
-        {dial(m, 'mins', 60)}
-        <div className="pulse-heart" style={{ display: 'flex', flex: 1 }}>
-          {dial(s, 'secs', 60)}
-        </div>
+    <section
+      className="wedding-countdown"
+      style={{
+        '--countdown-ink': navy,
+        '--countdown-paper': ivoryDeep,
+        '--countdown-sage': coral,
+        '--countdown-sage-deep': gold,
+      } as React.CSSProperties}
+    >
+      <div className="wedding-countdown__heading">
+        <span>Until we say “I do”</span>
+        <strong>Til &amp; Deen</strong>
+      </div>
+      <div className="wedding-countdown__units" aria-label={`${d} days, ${h} hours, ${m} minutes and ${s} seconds until the wedding`}>
+        {units.map((unit) => (
+          <div className="wedding-countdown__unit" key={unit.label}>
+            <strong>{String(unit.value).padStart(2, '0')}</strong>
+            <span>{unit.label}</span>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -405,10 +376,42 @@ export function Countdown({ palette }: SectionProps) {
 export function OurStory({ palette }: SectionProps) {
   const { navy, gold, coral, ivory } = palette;
   const beats = [
-    { year: 'Jan - Mar 2024', title: 'Divine Timing', body: 'I arrived in England on Jan 23rd—the same day Deen got the news that he passed his job interview. Exactly a month later, on Feb 23rd, he received his official offer, setting the stage for us to meet on March 23rd.', imgLabel: 'divine timing', emoji: '✈️' },
-    { year: 'Mar 23, 2024', title: 'Sea Life & A Tour Guide', body: 'A friend\'s double-date brought us together. Deen said, "Tell her to bring her beautiful friend too" — and that was me! We walked the city centre and visited Sea Life, where Deen became my personal tour guide.', imgLabel: 'first meeting', emoji: '🐠' },
-    { year: 'Spring - Sept 2024', title: '"Привет" & Consistent Walks', body: 'Deen messaged in Russian (knowing I studied in Ukraine) and consistently waited to walk me home from school with treats. Soon, we discovered we share a birth month—him on the 15th and me on the 5th!', imgLabel: 'everyday walks', emoji: '🍬' },
-    { year: 'Present Day', title: 'A Beautiful Journey', body: 'What started as a chance meeting, a city-centre walk, and a trip to Sea Life has become a beautiful love story. We smile looking at where we started and thank God for how it all began.', imgLabel: 'our love story', emoji: '❤️' },
+    { 
+      chapter: '01', 
+      year: 'Jan - Mar 2024', 
+      title: 'Divine Timing', 
+      body: 'I arrived in England on Jan 23rd—the same day Deen got the news that he passed his job interview. Exactly a month later, on Feb 23rd, he received his official offer, setting the stage for us to meet on March 23rd.', 
+      imgLabel: 'Divine Timing',
+      imgSrc: 'images/gallery/moment_40.jpeg',
+      objectPosition: 'center 20%'
+    },
+    { 
+      chapter: '02', 
+      year: 'Mar 23, 2024', 
+      title: 'Sea Life & A Tour Guide', 
+      body: 'A friend\'s double-date brought us together. Deen said, "Tell her to bring her beautiful friend too" — and that was me! We walked the city centre and visited Sea Life, where Deen became my personal tour guide.', 
+      imgLabel: 'Sea Life Date',
+      imgSrc: 'images/gallery/moment_01.jpeg',
+      objectPosition: 'center 18%'
+    },
+    { 
+      chapter: '03', 
+      year: 'Spring - Sept 2024', 
+      title: '"Привет" & Consistent Walks', 
+      body: 'Deen messaged in Russian (knowing I studied in Ukraine) and consistently waited to walk me home from school with treats. Soon, we discovered we share a birth month—him on the 15th and me on the 5th!', 
+      imgLabel: 'Walks & Treats',
+      imgSrc: 'images/gallery/moment_50.jpeg',
+      objectPosition: 'center 25%'
+    },
+    { 
+      chapter: '04', 
+      year: 'Present Day', 
+      title: 'A Beautiful Journey', 
+      body: 'What started as a chance meeting, a city-centre walk, and a trip to Sea Life has become a beautiful love story. We smile looking at where we started and thank God for how it all began.', 
+      imgLabel: 'Our Love Story',
+      imgSrc: 'images/gallery/moment_58.jpeg',
+      objectPosition: 'center 40%'
+    },
   ];
   
   return (
@@ -434,11 +437,12 @@ export function OurStory({ palette }: SectionProps) {
                   background: i % 2 ? coral : gold, 
                   border: `2px solid ${navy}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, flexShrink: 0, position: 'relative', zIndex: 2,
+                  fontSize: 12, fontWeight: 800, fontFamily: "'DM Sans', sans-serif", color: navy,
+                  flexShrink: 0, position: 'relative', zIndex: 2,
                   boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
                 }}
               >
-                {b.emoji}
+                {b.chapter}
               </div>
               
               <div className="glass-card hover-lift" style={{ 
@@ -458,7 +462,13 @@ export function OurStory({ palette }: SectionProps) {
                 <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, color: navy, opacity: 0.8, lineHeight: 1.5, marginTop: 8, marginBottom: 12 }}>
                   {b.body}
                 </div>
-                <PlaceholderImg label={b.imgLabel} ratio="16/9" palette={palette} />
+                <PlaceholderImg 
+                  label={b.imgLabel} 
+                  customSrc={b.imgSrc}
+                  objectPosition={b.objectPosition}
+                  ratio="4/3" 
+                  palette={palette} 
+                />
               </div>
             </div>
           </FadeInSection>
@@ -478,17 +488,17 @@ export function Details({ palette }: SectionProps) {
   const handleCalendarClick = (type: string) => {
     const title = "Nneka & Opeyemi's Wedding";
     const details = "We are so excited to celebrate our wedding day with you! Official details, travel tips, and RSVP can be found on our wedding invitation website.";
-    const location = "The Wings Event Centre, Asokoro, Abuja, Nigeria";
-    const start = "20261218T160000";
-    const end = "20261219T010000"; 
+    const location = "The Nest at Guzape Hills, Abuja, Nigeria";
+    const start = "20261218";
+    const end = "20261219";
     
-    let url = '';
+    let url: string;
     if (type === 'google') {
       url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
     } else if (type === 'yahoo') {
       url = `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${encodeURIComponent(title)}&st=${start}&et=${end}&desc=${encodeURIComponent(details)}&in_loc=${encodeURIComponent(location)}`;
     } else if (type === 'outlook') {
-      url = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(title)}&startdt=${start}&enddt=${end}&body=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+      url = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(title)}&startdt=2026-12-18&enddt=2026-12-19&allday=true&body=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
     } else {
       const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -496,8 +506,8 @@ PRODID:-//Til meets Deen//Wedding//EN
 BEGIN:VEVENT
 UID:tildeenwedding2026@nneka-opeyemi.com
 DTSTAMP:20260617T000000Z
-DTSTART:${start}
-DTEND:${end}
+DTSTART;VALUE=DATE:${start}
+DTEND;VALUE=DATE:${end}
 SUMMARY:${title}
 DESCRIPTION:${details}
 LOCATION:${location}
@@ -518,8 +528,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <section style={{ background: ivoryDeep, padding: '40px 22px', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 24, right: -12, opacity: 0.25 }}><Floral color={navy} size={90}/></div>
+    <section style={{ background: ivoryDeep, padding: '40px 22px', position: 'relative', overflow: 'visible', zIndex: showCal ? 5 : 'auto' }}>
       
       <FadeInSection>
         <SectionHeader kicker="the details" title="When & where" palette={palette}/>
@@ -527,7 +536,13 @@ END:VCALENDAR`;
       
       <FadeInSection>
         <div style={{ marginBottom: 18 }}>
-          <PlaceholderImg label="family" ratio="16/9" palette={palette} />
+          <PlaceholderImg 
+            label="The Nest at Guzape Hills · Abuja" 
+            customSrc="images/venue.png"
+            objectPosition="center 30%"
+            ratio="16/9" 
+            palette={palette} 
+          />
         </div>
 
         <div style={{
@@ -535,13 +550,14 @@ END:VCALENDAR`;
           display: 'flex', flexDirection: 'column', gap: 16,
           boxShadow: '0 10px 30px rgba(22, 45, 90, 0.05)',
         }}>
-          <DetailRow palette={palette} icon="📅" label="DATE" primary="Friday, December 18th" secondary="2026" accent={coral}/>
+          <DetailRow palette={palette} icon="DEC" label="DATE" primary="Friday, December 18th" secondary="2026" accent={coral}/>
           <div style={{ height: 1, background: `${navy}12` }}/>
-          <DetailRow palette={palette} icon="🕓" label="CEREMONY" primary="4:00 PM" secondary="Arrival from 3:30 PM" accent={gold}/>
+          <DetailRow palette={palette} icon="ABJ" label="VENUE" primary="The Nest at Guzape Hills" secondary="Guzape Hills, Abuja" accent={gold}/>
           <div style={{ height: 1, background: `${navy}12` }}/>
-          <DetailRow palette={palette} icon="🎊" label="RECEPTION" primary="6:30 PM — late" secondary="Dinner, dancing, dessert" accent={coral}/>
-          <div style={{ height: 1, background: `${navy}12` }}/>
-          <DetailRow palette={palette} icon="📍" label="VENUE" primary="The Wings Event Centre" secondary="Asokoro, Abuja" accent={gold}/>
+          <div style={{ padding: '7px 4px 2px', textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, color: gold, letterSpacing: 1.8, textTransform: 'uppercase' }}>Full programme</div>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: navy, marginTop: 4 }}>The timings will be revealed later.</div>
+          </div>
         </div>
       </FadeInSection>
 
@@ -559,12 +575,12 @@ END:VCALENDAR`;
               transition: 'all 0.3s',
             }}
           >
-            Add to calendar <span style={{ transform: showCal ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>→</span>
+            Save the date <span style={{ transform: showCal ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>→</span>
           </button>
           
           {showCal && (
             <div className="glass-card" style={{
-              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 8,
+              position: 'relative', left: 0, right: 0, marginTop: 8,
               borderRadius: 16, overflow: 'hidden', zIndex: 30,
               display: 'flex', flexDirection: 'column',
               boxShadow: '0 15px 35px rgba(0,0,0,0.15)',
@@ -628,74 +644,24 @@ function DetailRow({ palette, icon, label, primary, secondary, accent }: DetailR
 // ─────────────────────────────────────────────────────────────
 export function Schedule({ palette }: SectionProps) {
   const { navy, gold, coral } = palette;
-  const events = [
-    { time: '3:30 PM', title: 'Guest arrival & welcome drinks', place: 'The Wings · Main Lawn', tag: 'Arrival' },
-    { time: '4:00 PM', title: 'Ceremony begins', place: 'Garden Pavilion', tag: 'Ceremony' },
-    { time: '5:00 PM', title: 'Cocktail hour & photos', place: 'Terrace', tag: 'Cocktails' },
-    { time: '6:30 PM', title: 'Reception & dinner', place: 'Grand Ballroom', tag: 'Dinner' },
-    { time: '8:00 PM', title: 'First dance', place: 'Ballroom', tag: 'Party' },
-    { time: '9:30 PM', title: 'Cake cutting', place: 'Ballroom', tag: 'Celebration' },
-    { time: '10:00 PM', title: 'Afrobeats till late 🕺', place: 'Ballroom & patio', tag: 'Dance' },
-    { time: '1:00 AM', title: 'Last dance', place: 'Everywhere', tag: 'Farewell' },
-  ];
   
   return (
     <section style={{ padding: '40px 22px', background: palette.ivory }}>
       <FadeInSection>
-        <SectionHeader kicker="the day of" title="Schedule" palette={palette}
+        <SectionHeader kicker="the day of" title="Programme" palette={palette}
           accent={<Squiggle color={coral} w={100}/>}/>
       </FadeInSection>
       
-      <div style={{ display: 'flex', flexDirection: 'column', marginTop: 10 }}>
-        {events.map((e, i) => (
-          <FadeInSection key={i}>
-            <div 
-              className="hover-lift"
-              style={{
-                display: 'flex', gap: 16, padding: '18px 14px',
-                borderBottom: i < events.length - 1 ? `1px dashed ${navy}22` : 'none',
-                borderRadius: 12,
-                transition: 'all 0.3s',
-                cursor: 'default',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)';
-                e.currentTarget.style.boxShadow = '0 6px 15px rgba(22, 45, 90, 0.02)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'none';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              <div style={{ width: 72, flexShrink: 0 }}>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: navy, lineHeight: 1 }}>
-                  {e.time.split(' ')[0]}
-                </div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: navy, opacity: 0.55, letterSpacing: 1, marginTop: 2 }}>
-                  {e.time.split(' ')[1]}
-                </div>
-              </div>
-              
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15.5, color: navy, fontWeight: 600, lineHeight: 1.3 }}>
-                    {e.title}
-                  </span>
-                  <span style={{
-                    fontSize: 8.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8,
-                    background: i % 2 ? `${coral}18` : `${gold}22`,
-                    color: i % 2 ? coral : navy,
-                    padding: '2px 6px', borderRadius: 4,
-                  }}>{e.tag}</span>
-                </div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: navy, opacity: 0.65, marginTop: 3 }}>
-                  {e.place}
-                </div>
-              </div>
-            </div>
-          </FadeInSection>
-        ))}
-      </div>
+      <FadeInSection>
+        <div style={{ padding: '38px 24px', border: `1px solid ${navy}35`, background: palette.ivoryDeep, textAlign: 'center' }}>
+          <div style={{ width: 42, height: 1, margin: '0 auto 17px', background: gold }}/>
+          <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, color: gold, letterSpacing: 2, textTransform: 'uppercase' }}>To be revealed</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 31, color: navy, lineHeight: 1, marginTop: 9 }}>The order of the day is still under wraps.</div>
+          <p style={{ maxWidth: 390, margin: '13px auto 0', fontFamily: "'Manrope', sans-serif", fontSize: 12, color: navy, opacity: .72, lineHeight: 1.65 }}>
+            We will share the full programme with our guests closer to the celebration.
+          </p>
+        </div>
+      </FadeInSection>
     </section>
   );
 }
@@ -703,126 +669,7 @@ export function Schedule({ palette }: SectionProps) {
 // ─────────────────────────────────────────────────────────────
 // TRAVEL
 // ─────────────────────────────────────────────────────────────
-export function Travel({ palette }: SectionProps) {
-  const { navy, gold, coral, ivoryDeep } = palette;
-  const [activeTab, setActiveTab] = React.useState<'stay' | 'fly' | 'transport'>('stay');
-
-  const tabStyle = (tabName: 'stay' | 'fly' | 'transport'): React.CSSProperties => ({
-    flex: 1, padding: '12px 6px', border: 'none', background: 'none',
-    fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 700,
-    color: activeTab === tabName ? navy : `${navy}60`,
-    cursor: 'pointer', transition: 'all 0.3s',
-    borderBottom: activeTab === tabName ? `3px solid ${coral}` : `1px solid ${navy}18`,
-    textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1,
-  });
-
-  return (
-    <section style={{ padding: '40px 22px', background: ivoryDeep }}>
-      <FadeInSection>
-        <SectionHeader kicker="getting here" title="Travel & stay" palette={palette}/>
-      </FadeInSection>
-
-      <FadeInSection>
-        <div style={{ display: 'flex', marginBottom: 20 }}>
-          <button onClick={() => setActiveTab('stay')} style={tabStyle('stay')}>Hotels</button>
-          <button onClick={() => setActiveTab('fly')} style={tabStyle('fly')}>Flights</button>
-          <button onClick={() => setActiveTab('transport')} style={tabStyle('transport')}>Transit</button>
-        </div>
-      </FadeInSection>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {activeTab === 'stay' && (
-          <>
-            <FadeInSection>
-              <TravelCard 
-                palette={palette} tag="STAY" title="Transcorp Hilton Abuja" 
-                subtitle="Exclusive block rate · use code TILDEEN" accent={coral} starred
-                linkText="Book Special Rate" linkUrl="https://www.hilton.com"
-              />
-            </FadeInSection>
-            <FadeInSection>
-              <TravelCard 
-                palette={palette} tag="STAY" title="The Envoy Hotel" 
-                subtitle="Boutique Luxury · 10 min drive from venue" accent={gold}
-                linkText="Visit Website" linkUrl="https://theenvoyhotel.com"
-              />
-            </FadeInSection>
-          </>
-        )}
-
-        {activeTab === 'fly' && (
-          <FadeInSection>
-            <TravelCard 
-              palette={palette} tag="FLY IN" title="Nnamdi Azikiwe International" 
-              subtitle="ABV airport code · Approximately 45 mins cab drive to Asokoro hotels." accent={gold}
-              linkText="Directions map" linkUrl="https://maps.google.com"
-            />
-          </FadeInSection>
-        )}
-
-        {activeTab === 'transport' && (
-          <FadeInSection>
-            <TravelCard 
-              palette={palette} tag="GET AROUND" title="Wedding Shuttle service" 
-              subtitle="Shuttles depart from Transcorp & The Envoy at 3:00 PM & 3:15 PM sharp." accent={coral}
-            />
-          </FadeInSection>
-        )}
-      </div>
-    </section>
-  );
-}
-
-interface TravelCardProps {
-  palette: Palette;
-  tag: string;
-  title: string;
-  subtitle: string;
-  accent: string;
-  starred?: boolean;
-  linkText?: string;
-  linkUrl?: string;
-}
-
-function TravelCard({ palette, tag, title, subtitle, accent, starred, linkText, linkUrl }: TravelCardProps) {
-  const { navy, ivory } = palette;
-  return (
-    <div 
-      className="glass-card hover-lift"
-      style={{
-        background: ivory, border: `1.8px solid ${navy}`, borderRadius: 16, padding: '16px 14px',
-        display: 'flex', gap: 16, alignItems: 'center', position: 'relative',
-        boxShadow: '0 8px 20px rgba(22, 45, 90, 0.03)',
-      }}
-    >
-      <div style={{
-        width: 52, height: 52, borderRadius: 12, background: accent, border: `1.8px solid ${navy}`,
-        fontFamily: "'DM Sans', sans-serif", fontSize: 9.5, color: navy, fontWeight: 800,
-        letterSpacing: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        textAlign: 'center', lineHeight: 1.1, padding: 4, flexShrink: 0,
-        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)',
-      }}>{tag}</div>
-      
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: navy, lineHeight: 1.15 }}>{title}</div>
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: navy, opacity: 0.75, marginTop: 4, lineHeight: 1.4 }}>{subtitle}</div>
-        {linkUrl && (
-          <a 
-            href={linkUrl} target="_blank" rel="noopener noreferrer"
-            style={{ 
-              display: 'inline-block', fontFamily: "'DM Sans', sans-serif", fontSize: 11.5, fontWeight: 700,
-              color: accent === '#8BBDD4' ? navy : accent, marginTop: 8, textDecoration: 'none',
-              borderBottom: `1.5px solid currentColor`, paddingBottom: 1
-            }}
-          >
-            {linkText} →
-          </a>
-        )}
-      </div>
-      {starred && <Sparkle color={accent} size={15} style={{ position: 'absolute', top: 10, right: 12 }}/>}
-    </div>
-  );
-}
+export { Travel, TravelCard } from './TravelAndStay';
 
 // ─────────────────────────────────────────────────────────────
 // DRESS CODE
@@ -834,37 +681,36 @@ export function DressCode({ palette }: SectionProps) {
   const groups = [
     {
       id: 'bride',
-      label: "Bride's Side",
-      desc: "Dusty rose pink & ivory",
-      colors: [{ name: 'Dusty Rose', hex: '#C98FA0' }, { name: 'Ivory', hex: '#F7F3E9' }],
-      details: "Nneka's guests are requested to celebrate in dusty rose and warm ivory. Think lace wrappers, silk garments, flowy linen fabrics, or elegant suit accents.",
+      label: 'The Bride',
+      desc: 'Bridal ivory',
+      colors: [{ name: 'Ivory', hex: '#FFFFF0' }, { name: 'Sage Detail', hex: '#9CAF88' }],
+      details: "Nneka's look is centred on clean bridal ivory, finished with restrained sage greenery and soft natural florals.",
     },
     {
       id: 'groom',
-      label: "Groom's Side",
-      desc: "Emerald green & ivory",
-      colors: [{ name: 'Emerald', hex: '#2E7B5A' }, { name: 'Ivory', hex: '#F7F3E9' }],
-      details: "Opeyemi's guests are invited to dress in rich emerald green and ivory. Gele overlays, cap detailing, and tailored trads/suits are highly welcomed.",
+      label: 'The Groom',
+      desc: 'Sand, taupe & chocolate',
+      colors: [{ name: 'Sand / Taupe', hex: '#CBBBA4' }, { name: 'Chocolate', hex: '#3D2314' }],
+      details: "Opeyemi's look is a warm sand or taupe three-piece suit with chocolate-brown accessories, an ivory boutonnière, and a touch of sage greenery.",
     },
     {
       id: 'bridesmaids',
       label: 'Bridesmaids',
-      desc: 'Ice blue & ivory',
-      colors: [{ name: 'Ice Blue', hex: '#8BBDD4' }, { name: 'Ivory', hex: '#F7F3E9' }],
-      details: "Our bridesmaid coordinate will be in ice blue satin and lace textures with matching ivory accessories.",
+      desc: 'Chocolate satin & ivory florals',
+      colors: [{ name: 'Chocolate', hex: '#3D2314' }, { name: 'Ivory', hex: '#FFFFF0' }],
+      details: 'The bridesmaids will wear rich chocolate-brown satin, paired with understated jewellery and soft ivory florals.',
     },
     {
       id: 'groomsmen',
       label: 'Groomsmen',
-      desc: 'Charcoal & blue',
-      colors: [{ name: 'Charcoal', hex: '#4A4A5A' }, { name: 'Blue', hex: '#4A76B8' }],
-      details: "Our groomsmen will stand sharp in charcoal grey suits, paired with ice-blue shirts or ties.",
+      desc: 'Sage, ivory & champagne',
+      colors: [{ name: 'Sage Green', hex: '#9CAF88' }, { name: 'Champagne', hex: '#CBBBA4' }],
+      details: 'The groomsmen will wear soft sage suits with white shirts, ivory or champagne ties, brown shoes, and simple ivory boutonnieres.',
     },
   ];
 
   return (
     <section style={{ padding: '40px 22px', background: ivory, position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 30, right: -20, opacity: 0.3 }}><Leaf color={navy} size={75}/></div>
       
       <FadeInSection>
         <SectionHeader kicker="what to wear" title="Dress code" palette={palette}
@@ -877,18 +723,18 @@ export function DressCode({ palette }: SectionProps) {
           boxShadow: '0 8px 25px rgba(22, 45, 90, 0.03)',
         }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 25, color: navy, lineHeight: 1.15 }}>
-            Formal attire, <span style={{ color: coral }}>celebratory</span> colors
+            Formal attire, <span style={{ color: coral }}>earthy elegance</span>
           </div>
           <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, color: navy, opacity: 0.8, marginTop: 10, lineHeight: 1.55 }}>
-            Think garden-party meets gala. Aso ebi colors below represent family & wedding party — guests are welcome to wear any luxury jewel tone.
+            Our celebration is built around ivory, sage green, and chocolate brown, with warm taupe and champagne details. Tap each look to see the wedding-party styling direction.
           </div>
           <div style={{
-            marginTop: 14, padding: '12px 14px', background: '#fff',
-            border: `1.5px dashed ${navy}28`, borderRadius: 12,
-            fontFamily: "'Caveat', cursive", fontSize: 18, color: navy, lineHeight: 1.25,
-            textAlign: 'center'
+            marginTop: 14, padding: '14px 16px', background: navy,
+            border: `1px solid ${navy}`, borderRadius: 0,
+            fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 700, color: ivory, lineHeight: 1.5,
+            letterSpacing: .4, textAlign: 'center'
           }}>
-            please avoid → white, cream, or all-black
+            Guest note: please reserve white and ivory exclusively for the bride.
           </div>
         </div>
       </FadeInSection>
@@ -954,115 +800,19 @@ export function DressCode({ palette }: SectionProps) {
 // ─────────────────────────────────────────────────────────────
 // WEDDING PARTY
 // ─────────────────────────────────────────────────────────────
-export function WeddingParty({ palette }: SectionProps) {
-  const { navy, ivoryDeep, ivory } = palette;
-  const bridesmaidColor = '#8BBDD4';
-  const groomsmanColor = '#4A4A5A';
-  const party = [
-    { name: 'Chiamaka', role: 'Maid of Honor', side: 'T' },
-    { name: 'Zainab', role: 'Bridesmaid', side: 'T' },
-    { name: 'Amara', role: 'Bridesmaid', side: 'T' },
-    { name: 'Funmi', role: 'Bridesmaid', side: 'T' },
-    { name: 'Tunde', role: 'Best Man', side: 'D' },
-    { name: 'Kola', role: 'Groomsman', side: 'D' },
-    { name: 'Seun', role: 'Groomsman', side: 'D' },
-    { name: 'Rashid', role: 'Groomsman', side: 'D' },
-  ];
-  return (
-    <section style={{ padding: '40px 22px', background: ivory }}>
-      <FadeInSection>
-        <SectionHeader kicker="our people" title="The wedding party" palette={palette}/>
-      </FadeInSection>
-      
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {party.map((p, i) => (
-          <FadeInSection key={i}>
-            <div 
-              className="hover-lift"
-              style={{
-                border: `1.8px solid ${navy}`, borderRadius: 16,
-                background: p.side === 'T' ? ivoryDeep : '#fff',
-                padding: '12px 10px', display: 'flex', gap: 12, alignItems: 'center',
-                boxShadow: '0 4px 12px rgba(22, 45, 90, 0.03)',
-              }}
-            >
-              <div style={{
-                width: 44, height: 44, borderRadius: '50%',
-                background: p.side === 'T' ? bridesmaidColor : groomsmanColor, border: `1.8px solid ${navy}`,
-                flexShrink: 0,
-                backgroundImage: `repeating-linear-gradient(45deg, transparent 0 4px, ${navy}12 4px 5px)`,
-                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-              }}/>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15.5, color: navy, lineHeight: 1.1 }}>{p.name}</div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: navy, opacity: 0.55, marginTop: 4, letterSpacing: 0.5 }}>{p.role}</div>
-              </div>
-            </div>
-          </FadeInSection>
-        ))}
-      </div>
-    </section>
-  );
-}
+export { WeddingParty } from './WeddingParty';
 
 // ─────────────────────────────────────────────────────────────
 // REGISTRY
 // ─────────────────────────────────────────────────────────────
-export function Registry({ palette }: SectionProps) {
-  const { navy, ivory, gold, coral, ivoryDeep } = palette;
-  const items = [
-    { name: 'Honeymoon fund', sub: 'Santorini or bust 🌅', accent: coral },
-    { name: 'Home & kitchen', sub: 'via Williams Sonoma', accent: gold },
-    { name: 'Nigerian charity', sub: 'Slum2School Africa', accent: coral },
-  ];
-  return (
-    <section style={{ padding: '40px 22px', background: ivoryDeep }}>
-      <FadeInSection>
-        <SectionHeader kicker="if you insist" title="Registry" palette={palette}
-          accent={<Squiggle color={gold} w={100}/>}/>
-      </FadeInSection>
-      
-      <FadeInSection>
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: navy, opacity: 0.8, marginBottom: 18, lineHeight: 1.55 }}>
-          Your presence is the real gift — but if you'd like to contribute, here are a few options.
-        </div>
-      </FadeInSection>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {items.map((it, i) => (
-          <FadeInSection key={i}>
-            <div 
-              className="glass-card hover-lift"
-              style={{
-                background: ivory, border: `1.8px solid ${navy}`, borderRadius: 16,
-                padding: '16px 14px', display: 'flex', alignItems: 'center', gap: 14,
-                cursor: 'pointer',
-                boxShadow: '0 6px 16px rgba(22, 45, 90, 0.03)',
-              }}
-            >
-              <div style={{
-                width: 40, height: 40, borderRadius: 12, background: it.accent, border: `1.8px solid ${navy}`, flexShrink: 0,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-              }}/>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: navy, lineHeight: 1.15 }}>{it.name}</div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: navy, opacity: 0.7, marginTop: 3 }}>{it.sub}</div>
-              </div>
-              <div style={{ fontSize: 18, color: navy, fontWeight: 'bold' }}>→</div>
-            </div>
-          </FadeInSection>
-        ))}
-      </div>
-    </section>
-  );
-}
+export { Registry, type WishlistItem, DEFAULT_WISHLIST } from './Registry';
 
 // ─────────────────────────────────────────────────────────────
 // GALLERY
 // ─────────────────────────────────────────────────────────────
 export function Gallery({ palette }: SectionProps) {
   const tilts = [-3.5, 3, -2, 2.5, -3, 2];
-  const labels = ['first date', 'engagement', 'travels', 'family', 'us', 'the proposal'];
+  const labels = ['first date', 'engagement', 'travels', 'celebration', 'us', 'the proposal'];
   
   return (
     <section style={{ padding: '40px 22px', background: palette.ivory }}>
@@ -1095,10 +845,9 @@ export function FAQ({ palette }: SectionProps) {
   const qs = [
     { q: 'Can I bring a plus one?', a: 'Our venue has a strict guest list, so plus ones are only invited if named on your RSVP.' },
     { q: 'Are kids welcome?', a: 'We love your little ones, but this will be an adult-only celebration (babies in arms under 12 months welcome).' },
-    { q: 'Is there parking?', a: 'Valet parking is complimentary at The Wings. Shuttle service also runs from our partner hotels.' },
-    { q: "What if I'm late to the ceremony?", a: 'Doors close at 4:00 PM sharp. Please aim to arrive by 3:45 PM. Late-comers can join at the reception.' },
-    { q: 'Will the ceremony be outdoors?', a: 'Yes — in the garden pavilion. Weather contingency is a covered terrace. Dress for the warm Harmattan breeze.' },
-    { q: 'Can I share photos?', a: 'Please! Tag #TilMeetsDeen. We are unplugged for the ceremony only.' },
+    { q: 'Is there parking?', a: 'Valet parking is complimentary at The Nest at Guzape Hills. Uber and Bolt also drop off directly at the main entrance.' },
+    { q: 'When will the timings be shared?', a: 'The full programme will be revealed closer to the celebration. We will make sure every invited guest receives it.' },
+    { q: 'Can I share photos?', a: 'Please! Tag #TilMeetsDeen. We will let guests know if any part of the day is unplugged.' },
   ];
   const [open, setOpen] = React.useState(0);
   
@@ -1157,51 +906,7 @@ export function FAQ({ palette }: SectionProps) {
 // ─────────────────────────────────────────────────────────────
 // THINGS TO DO (NEARBY)
 // ─────────────────────────────────────────────────────────────
-export function ThingsToDo({ palette }: SectionProps) {
-  const { navy, gold, coral } = palette;
-  const spots = [
-    { name: 'Zuma Rock', cat: 'NATURE', note: 'Iconic monolith — where Deen proposed', accent: coral },
-    { name: 'Jabi Lake Mall', cat: 'SHOP', note: 'Retail & rooftop cafés', accent: gold },
-    { name: 'Millennium Park', cat: 'STROLL', note: 'Biggest park in Abuja', accent: coral },
-    { name: 'Nike Art Gallery', cat: 'CULTURE', note: 'Five floors of Nigerian art', accent: gold },
-    { name: 'Bujumbura Kitchen', cat: 'EAT', note: 'Our favourite jollof spot', accent: coral },
-  ];
-  return (
-    <section style={{ padding: '40px 22px', background: palette.ivory }}>
-      <FadeInSection>
-        <SectionHeader kicker="stick around" title="Things to do in Abuja" palette={palette}/>
-      </FadeInSection>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {spots.map((s, i) => (
-          <FadeInSection key={i}>
-            <div 
-              className="hover-lift"
-              style={{
-                border: `1.8px solid ${navy}`, borderRadius: 16, padding: '14px 16px',
-                display: 'flex', gap: 14, alignItems: 'center',
-                background: '#fff',
-                boxShadow: '0 4px 12px rgba(22, 45, 90, 0.02)',
-              }}
-            >
-              <div style={{
-                width: 56, fontFamily: "'DM Sans', sans-serif", fontSize: 9.5, color: navy,
-                fontWeight: 800, letterSpacing: 1.5, textAlign: 'center',
-                background: s.accent, borderRadius: 8, padding: '7px 4px', border: `1.5px solid ${navy}`,
-                flexShrink: 0,
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)',
-              }}>{s.cat}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17.5, color: navy, lineHeight: 1.15 }}>{s.name}</div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: navy, opacity: 0.7, marginTop: 3 }}>{s.note}</div>
-              </div>
-            </div>
-          </FadeInSection>
-        ))}
-      </div>
-    </section>
-  );
-}
+export { ThingsToDo } from './ThingsToDo';
 
 // ─────────────────────────────────────────────────────────────
 // GUESTBOOK
@@ -1221,10 +926,10 @@ export function Guestbook({ palette }: SectionProps) {
     try {
       const saved = localStorage.getItem('tildeen_guestbook');
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch { /* fall back to the sample guestbook entries */ }
     return [
-      { id: 1, name: 'Auntie Remi', msg: "Can't wait to dance at your wedding my darlings 💃", color: coral, likes: 8, rot: -2 },
-      { id: 2, name: 'Tunde', msg: 'Best man reporting for duty. The toast will be LEGENDARY.', color: gold, likes: 14, rot: 3 },
+      { id: 1, name: 'Auntie Remi', msg: "Can't wait to dance and celebrate at your wedding my darlings.", color: coral, likes: 8, rot: -2 },
+      { id: 2, name: 'Tunde', msg: 'Best man reporting for duty. The toast will be legendary.', color: gold, likes: 14, rot: 3 },
       { id: 3, name: 'Grandma', msg: 'May your love be as long as our family line.', color: coral, likes: 6, rot: -1.5 },
     ];
   });
@@ -1243,14 +948,14 @@ export function Guestbook({ palette }: SectionProps) {
     };
     const updated = [newEntry, ...entries];
     setEntries(updated);
-    try { localStorage.setItem('tildeen_guestbook', JSON.stringify(updated)); } catch (e) {}
+    try { localStorage.setItem('tildeen_guestbook', JSON.stringify(updated)); } catch { /* local persistence is best-effort */ }
     setName(''); setMsg('');
   };
 
   const handleLike = (id: number) => {
     const updated = entries.map(e => e.id === id ? { ...e, likes: e.likes + 1 } : e);
     setEntries(updated);
-    try { localStorage.setItem('tildeen_guestbook', JSON.stringify(updated)); } catch (e) {}
+    try { localStorage.setItem('tildeen_guestbook', JSON.stringify(updated)); } catch { /* local persistence is best-effort */ }
   };
 
   const insertPreset = (presetText: string) => {
@@ -1258,10 +963,10 @@ export function Guestbook({ palette }: SectionProps) {
   };
 
   const presets = [
-    "So happy for you! 🎉",
-    "Can't wait to party! 🥂",
-    "Wishing you a lifetime of love! 💖",
-    "Best wishes on your journey! ✨"
+    "So happy for you both!",
+    "Can't wait to celebrate!",
+    "Wishing you a lifetime of love and joy!",
+    "Heartfelt blessings on your new journey!"
   ];
 
   return (
@@ -1285,7 +990,7 @@ export function Guestbook({ palette }: SectionProps) {
             }}
           />
           <textarea
-            value={msg} onChange={e => setMsg(e.target.value)} placeholder="write a note for Til &amp; Deen..."
+            value={msg} onChange={e => setMsg(e.target.value)} placeholder="Write a note for Til &amp; Deen..."
             rows={2}
             style={{
               width: '100%', border: 'none', outline: 'none', background: 'transparent',
@@ -1403,8 +1108,8 @@ export function Footer({ palette }: SectionProps) {
       <div style={{ position: 'absolute', top: 30, right: 24, opacity: 0.3 }}><Sparkle color={coral} size={11}/></div>
       <div style={{ position: 'absolute', bottom: 60, left: 30, opacity: 0.3 }}><Dot color={gold} size={5}/></div>
       <div style={{ fontFamily: "'Caveat', cursive", fontSize: 24, color: gold, transform: 'rotate(-2deg)' }}>with so much love,</div>
-      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, lineHeight: 1, marginTop: 6, letterSpacing: -1 }}>
-        Til <span style={{ fontFamily: "'Caveat', cursive", color: coral, fontSize: 34 }}>&amp;</span> Deen
+      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, lineHeight: .92, marginTop: 8, letterSpacing: -1 }}>
+        Til <span style={{ fontFamily: "'Caveat', cursive", color: coral, fontSize: 30 }}>&amp;</span> Deen
       </div>
       <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11.5, fontWeight: 600, opacity: 0.6, marginTop: 20, letterSpacing: 2 }}>
         #TILMEETSDEEN · 18 · 12 · 2026

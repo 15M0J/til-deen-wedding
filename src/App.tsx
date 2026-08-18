@@ -4,11 +4,13 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import EnvelopeGate from './components/EnvelopeGate';
 import RsvpChat from './components/RsvpChat';
-import { Floral, Leaf } from './components/Accents';
+import HostDashboard from './components/HostDashboard';
+import { findGuestByCode } from './utils/guestDb';
 import {
   Hero, Countdown, OurStory, Details, Schedule, Travel, DressCode, WeddingParty,
-  Registry, Gallery, FAQ, ThingsToDo, Guestbook, Footer
+  Registry, FAQ, ThingsToDo, Guestbook, Footer
 } from './components/Sections';
+import { Gallery } from './components/Gallery';
 import type { Palette } from './components/Sections';
 
 // ── Tweakable defaults (persisted by host) ──────────────────
@@ -19,15 +21,16 @@ const TWEAKS = {
   "nick2": "Deen",
   "date": "December 18, 2026",
   "venue": "Abuja",
-  "paletteName": "Sage & Terracotta",
-  "typeSystem": "Serif + Script + Sans",
+  "paletteName": "Ivory, Sage & Chocolate",
+  "typeSystem": "Wedding Editorial",
   "heroLayout": "split",
   "accents": "playful",
-  "guestName": "Adaeze"
+  "guestName": "Guest"
 };
 
 // ── Palettes ────────────────────────────────────────────────
 const PALETTES: Record<string, Palette> = {
+  'Ivory, Sage & Chocolate': { navy: '#3D2314', ivory: '#FFFFF0', ivoryDeep: '#F3EEE2', gold: '#657657', coral: '#9CAF88' },
   'Sage & Terracotta': { navy: '#2B4530', ivory: '#F7F3E9', ivoryDeep: '#EDE4CF', gold: '#8BBDD4', coral: '#C4663E' },
   'Navy & Ivory': { navy: '#16274F', ivory: '#F6EFD9', ivoryDeep: '#EEE4C3', gold: '#E8B04E', coral: '#D7604C' },
   'Midnight & Blush': { navy: '#1A1D3A', ivory: '#FBE8DC', ivoryDeep: '#F3D4C1', gold: '#E89B7A', coral: '#CC5C6A' },
@@ -37,6 +40,11 @@ const PALETTES: Record<string, Palette> = {
 
 // ── Type systems ────────────────────────────────────────────
 const TYPE_SYSTEMS = {
+  'Wedding Editorial': {
+    serif: "'Cormorant Garamond', serif",
+    script: "'Allura', cursive",
+    sans: "'Manrope', sans-serif",
+  },
   'Serif + Script + Sans': {
     serif: "'DM Serif Display', serif",
     script: "'Caveat', cursive",
@@ -59,13 +67,13 @@ const SECTIONS = [
   { id: 'home', label: 'Home' },
   { id: 'story', label: 'Story' },
   { id: 'details', label: 'Details' },
-  { id: 'schedule', label: 'Schedule' },
-  { id: 'travel', label: 'Travel' },
-  { id: 'dress', label: 'Dress' },
-  { id: 'party', label: 'Party' },
+  { id: 'schedule', label: 'Programme' },
+  { id: 'travel', label: 'Travel & Stay' },
+  { id: 'todo', label: 'Abuja Guide' },
+  { id: 'dress', label: 'Dress Code' },
+  { id: 'party', label: 'Wedding Party' },
   { id: 'gallery', label: 'Gallery' },
   { id: 'registry', label: 'Registry' },
-  { id: 'todo', label: 'Abuja' },
   { id: 'faq', label: 'FAQ' },
   { id: 'guestbook', label: 'Notes' },
 ];
@@ -77,9 +85,10 @@ interface MenuProps {
   onJump: (id: string) => void;
   palette: Palette;
   onRsvp: () => void;
+  onHostClick: () => void;
 }
 
-function Menu({ open, onClose, onJump, palette, onRsvp }: MenuProps) {
+function Menu({ open, onClose, onJump, palette, onRsvp, onHostClick }: MenuProps) {
   const { navy, ivory, gold, coral } = palette;
   return (
     <div style={{
@@ -99,7 +108,7 @@ function Menu({ open, onClose, onJump, palette, onRsvp }: MenuProps) {
         display: 'flex', flexDirection: 'column', gap: 4,
         boxShadow: open ? '-10px 0 40px rgba(0,0,0,0.3)' : 'none',
       }}>
-        <button 
+        <button
           onClick={onClose} 
           style={{
             position: 'absolute', top: 22, right: 22, background: 'none', border: 'none',
@@ -109,8 +118,8 @@ function Menu({ open, onClose, onJump, palette, onRsvp }: MenuProps) {
           onMouseEnter={e => e.currentTarget.style.transform = 'rotate(90deg)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'none'}
         >×</button>
-        <div style={{ fontFamily: "'Caveat', cursive", fontSize: 24, color: gold }}>til &amp; deen's</div>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, lineHeight: 1, marginBottom: 20 }}>wedding menu</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: gold, letterSpacing: 2.4, textTransform: 'uppercase' }}>Til &amp; Deen</div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, lineHeight: 1, margin: '5px 0 20px' }}>Wedding menu</div>
         <div className="hide-scroll" style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {SECTIONS.map((s, idx) => (
             <button 
@@ -138,6 +147,16 @@ function Menu({ open, onClose, onJump, palette, onRsvp }: MenuProps) {
             boxShadow: '0 8px 20px rgba(196, 102, 62, 0.25)',
           }}
         >RSVP NOW →</button>
+        <button
+          onClick={() => { onClose(); onHostClick(); }}
+          style={{
+            background: 'none', border: 'none', color: ivory, opacity: 0.35, fontSize: 10,
+            cursor: 'pointer', textAlign: 'center', marginTop: 16, alignSelf: 'center',
+            letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: "'DM Sans', sans-serif"
+          }}
+        >
+          Host Sign In
+        </button>
       </div>
     </div>
   );
@@ -160,11 +179,9 @@ function TopBar({ onMenuClick, palette, onRsvp }: TopBarProps) {
       padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{
-          width: 30, height: 30, borderRadius: '50%', background: coral,
-          border: `1.5px solid ${navy}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: "'DM Serif Display', serif", fontSize: 11, color: navy, fontWeight: 700,
-        }}>T&amp;D</div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: navy, fontWeight: 500 }}>
+          Til <span style={{ fontFamily: "'Caveat', cursive", color: coral }}>&amp;</span> Deen
+        </div>
         <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: navy, opacity: 0.75, letterSpacing: 1.5, textTransform: 'uppercase' }}>
           18 · 12 · 26
         </div>
@@ -199,33 +216,22 @@ interface RsvpSheetProps {
 
 function RsvpSheet({ open, onClose, palette, guestName }: RsvpSheetProps) {
   return (
-    <div style={{
-      position: 'absolute', inset: 0, zIndex: 90,
-      pointerEvents: open ? 'auto' : 'none',
-    }}>
-      <div onClick={onClose} style={{
-        position: 'absolute', inset: 0, background: '#000',
-        opacity: open ? 0.45 : 0, transition: 'opacity 0.25s',
-      }}/>
-      <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0,
-        height: '88%',
-        background: palette.ivory, borderTopLeftRadius: 28, borderTopRightRadius: 28,
-        transform: `translateY(${open ? 0 : 100}%)`,
-        transition: 'transform 0.35s cubic-bezier(.4,0,.2,1)',
-        display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-          <div style={{ width: 40, height: 4, background: `${palette.navy}30`, borderRadius: 2 }}/>
-        </div>
-        <button onClick={onClose} style={{
-          position: 'absolute', top: 12, right: 16, background: 'none', border: 'none',
-          color: palette.navy, fontSize: 22, cursor: 'pointer',
-        }}>×</button>
-        <div style={{ flex: 1, overflow: 'hidden' }}>
+    <div
+      className={open ? 'rsvp-sheet rsvp-sheet--open' : 'rsvp-sheet'}
+      style={{
+        '--sheet-ivory': palette.ivory,
+        '--sheet-chocolate': palette.navy,
+      } as React.CSSProperties}
+      aria-hidden={!open}
+    >
+      <button className="rsvp-sheet__backdrop" type="button" onClick={onClose} aria-label="Close RSVP" />
+      <aside className="rsvp-sheet__panel" role="dialog" aria-modal="true" aria-label="Wedding RSVP">
+        <div className="rsvp-sheet__handle" aria-hidden="true" />
+        <button className="rsvp-sheet__close" type="button" onClick={onClose} aria-label="Close RSVP">×</button>
+        <div className="rsvp-sheet__content">
           {open && <RsvpChat guestName={guestName} palette={palette}/>}
         </div>
-      </div>
+      </aside>
     </div>
   );
 }
@@ -241,7 +247,7 @@ function TweaksPanel({ tweaks, setTweaks, visible }: TweaksPanelProps) {
   if (!visible) return null;
   const push = (edits: Partial<typeof TWEAKS>) => {
     setTweaks(t => ({ ...t, ...edits }));
-    try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*'); } catch (e) {}
+    try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*'); } catch { /* optional editor bridge */ }
   };
   return (
     <div style={{
@@ -253,7 +259,7 @@ function TweaksPanel({ tweaks, setTweaks, visible }: TweaksPanelProps) {
     }} className="hide-scroll">
       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10, display: 'flex', justifyContent: 'space-between' }}>
         <span>Tweaks</span>
-        <span style={{ opacity: 0.5, fontWeight: 400 }}>til &amp; deen</span>
+        <span style={{ opacity: 0.5, fontWeight: 400 }}>Nneka &amp; Opeyemi</span>
       </div>
       <Field label="Palette">
         <select value={tweaks.paletteName} onChange={e => push({ paletteName: e.target.value })} style={sel}>
@@ -304,12 +310,18 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // ── Main App Controller ─────────────────────────────────────
 export default function App() {
+  const initialHostMode = React.useMemo(() => {
+    const code = new URL(window.location.href).searchParams.get('code')?.toLowerCase();
+    return code === 'host' || code === '181226';
+  }, []);
   const [tweaks, setTweaks] = React.useState(TWEAKS);
-  const [unlocked, setUnlocked] = React.useState(false);
-  const [gateMounted, setGateMounted] = React.useState(true);
+  const [unlocked, setUnlocked] = React.useState(initialHostMode);
+  const [gateMounted, setGateMounted] = React.useState(!initialHostMode);
   const [menu, setMenu] = React.useState(false);
   const [rsvp, setRsvp] = React.useState(false);
   const [tweakMode, setTweakMode] = React.useState(false);
+  const [hostMode, setHostMode] = React.useState(initialHostMode);
+  const [resolvedGuestName, setResolvedGuestName] = React.useState<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const [vw, setVw] = React.useState(window.innerWidth);
 
@@ -320,18 +332,22 @@ export default function App() {
   }, []);
 
   const guestName = React.useMemo(() => {
+    if (resolvedGuestName) return resolvedGuestName;
     try {
       const code = new URL(window.location.href).searchParams.get('code');
       if (code) {
+        const match = findGuestByCode(code);
+        if (match) return match.name;
+
         const map: Record<string, string> = { adaeze: 'Adaeze', kola: 'Kola', amina: 'Amina' };
         return map[code.toLowerCase()] || tweaks.guestName;
       }
-    } catch (e) {}
+    } catch { /* fall back to the configured guest label */ }
     return tweaks.guestName;
-  }, [tweaks.guestName]);
+  }, [resolvedGuestName, tweaks.guestName]);
 
-  const palette = PALETTES[tweaks.paletteName] || PALETTES['Sage & Terracotta'];
-  const type = TYPE_SYSTEMS[tweaks.typeSystem as keyof typeof TYPE_SYSTEMS] || TYPE_SYSTEMS['Serif + Script + Sans'];
+  const palette = PALETTES[tweaks.paletteName] || PALETTES['Ivory, Sage & Chocolate'];
+  const type = TYPE_SYSTEMS[tweaks.typeSystem as keyof typeof TYPE_SYSTEMS] || TYPE_SYSTEMS['Wedding Editorial'];
 
   // Tweaks messaging protocol
   React.useEffect(() => {
@@ -340,7 +356,7 @@ export default function App() {
       if (e.data?.type === '__deactivate_edit_mode') setTweakMode(false);
     };
     window.addEventListener('message', onMsg);
-    try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) {}
+    try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch { /* optional editor bridge */ }
     return () => window.removeEventListener('message', onMsg);
   }, []);
 
@@ -368,7 +384,37 @@ export default function App() {
 
   const isDesktopSplit = vw >= 960;
 
-  const appContent = (
+  const handleHostLogin = () => {
+    const code = prompt("Enter Host Passcode:");
+    if (code && (code.toLowerCase() === 'host' || code.toLowerCase() === '181226')) {
+      setHostMode(true);
+      setUnlocked(true);
+      setGateMounted(false);
+      toast.info(`Logged in as host. Welcome back.`, {
+        position: "top-center",
+        autoClose: 3000
+      });
+      const url = new URL(window.location.href);
+      url.searchParams.set('code', 'host');
+      window.history.replaceState({}, '', url.toString());
+    } else if (code) {
+      alert("Incorrect passcode.");
+    }
+  };
+
+  const appContent = hostMode ? (
+    <HostDashboard
+      palette={palette}
+      onExit={() => {
+        setHostMode(false);
+        setUnlocked(false);
+        setGateMounted(true);
+        const url = new URL(window.location.href);
+        url.searchParams.delete('code');
+        window.history.replaceState({}, '', url.toString());
+      }}
+    />
+  ) : (
     <div style={{ position: 'relative', height: '100%' }}>
       {unlocked && (
         <div 
@@ -400,21 +446,10 @@ export default function App() {
                 overflowY: 'auto',
                 flexShrink: 0,
               }}>
-                <div style={{ position: 'absolute', top: -30, left: -30, opacity: 0.1, pointerEvents: 'none' }}>
-                  <Floral color={palette.gold} size={180} />
-                </div>
-                <div style={{ position: 'absolute', bottom: -45, right: -45, opacity: 0.1, pointerEvents: 'none', transform: 'rotate(90deg)' }}>
-                  <Leaf color={palette.gold} size={200} />
-                </div>
+                <div aria-hidden="true" style={{ position: 'absolute', inset: 14, border: `1px solid ${palette.ivory}18`, pointerEvents: 'none' }} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 2 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: '50%', background: palette.coral,
-                    border: `2px solid ${palette.ivory}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: "'DM Serif Display', serif", fontSize: 15, color: palette.navy, fontWeight: 700,
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.18)',
-                  }}>T&amp;D</div>
                   <div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: palette.ivory, letterSpacing: -0.2 }}>Nneka &amp; Opeyemi</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 23, color: palette.ivory, letterSpacing: -0.2 }}>Til &amp; Deen</div>
                     <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: palette.ivory, opacity: 0.65, letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 2 }}>
                       December 18, 2026
                     </div>
@@ -425,18 +460,18 @@ export default function App() {
                     maxWidth: '180px', 
                     maxHeight: '22vh', 
                     margin: '0 auto 16px', 
-                    borderRadius: 20, 
+                    borderRadius: 0,
                     overflow: 'hidden', 
-                    border: `2.5px solid ${palette.gold}`, 
+                    border: `1px solid ${palette.ivory}66`,
                     boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
                     aspectRatio: '1/1'
                   }}>
                     <img src="images/couple_hero.png" alt="Nneka & Opeyemi" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   </div>
-                  <div style={{ fontFamily: "'Caveat', cursive", fontSize: 24, color: palette.gold, transform: 'rotate(-1.5deg)' }}>
-                    welcome, {guestName.split(' ')[0]}!
+                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: palette.gold, letterSpacing: 2.2, textTransform: 'uppercase' }}>
+                    Welcome, {guestName.split(' ')[0]}
                   </div>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: palette.ivory, lineHeight: 1.05, marginTop: 6 }}>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: palette.ivory, lineHeight: .92, marginTop: 9 }}>
                     Til <span style={{ fontFamily: "'Caveat', cursive", fontSize: 28, color: palette.coral }}>&amp;</span> Deen
                   </div>
                   <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: palette.ivory, opacity: 0.75, letterSpacing: 2.5, textTransform: 'uppercase', marginTop: 8 }}>
@@ -445,10 +480,10 @@ export default function App() {
                 </div>
                 <div style={{ 
                   position: 'relative', zIndex: 2, 
-                  background: 'rgba(255,255,255,0.03)', 
-                  borderRadius: 20, 
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  padding: '4px'
+                  background: 'transparent',
+                  borderRadius: 0,
+                  border: 'none',
+                  padding: 0
                 }}>
                   <Countdown palette={palette} />
                 </div>
@@ -469,11 +504,11 @@ export default function App() {
                 <div id="sec-details"><Details palette={palette}/></div>
                 <div id="sec-schedule"><Schedule palette={palette}/></div>
                 <div id="sec-travel"><Travel palette={palette}/></div>
+                <div id="sec-todo"><ThingsToDo palette={palette}/></div>
                 <div id="sec-dress"><DressCode palette={palette}/></div>
                 <div id="sec-party"><WeddingParty palette={palette}/></div>
                 <div id="sec-gallery"><Gallery palette={palette}/></div>
                 <div id="sec-registry"><Registry palette={palette}/></div>
-                <div id="sec-todo"><ThingsToDo palette={palette}/></div>
                 <div id="sec-faq"><FAQ palette={palette}/></div>
                 <div id="sec-guestbook"><Guestbook palette={palette}/></div>
                 <Footer palette={palette}/>
@@ -488,11 +523,11 @@ export default function App() {
               <div id="sec-details"><Details palette={palette}/></div>
               <div id="sec-schedule"><Schedule palette={palette}/></div>
               <div id="sec-travel"><Travel palette={palette}/></div>
+              <div id="sec-todo"><ThingsToDo palette={palette}/></div>
               <div id="sec-dress"><DressCode palette={palette}/></div>
               <div id="sec-party"><WeddingParty palette={palette}/></div>
               <div id="sec-gallery"><Gallery palette={palette}/></div>
               <div id="sec-registry"><Registry palette={palette}/></div>
-              <div id="sec-todo"><ThingsToDo palette={palette}/></div>
               <div id="sec-faq"><FAQ palette={palette}/></div>
               <div id="sec-guestbook"><Guestbook palette={palette}/></div>
               <Footer palette={palette}/>
@@ -504,28 +539,39 @@ export default function App() {
         <EnvelopeGate 
           guestName={guestName} 
           palette={palette} 
+          onGuestResolved={(guest) => setResolvedGuestName(guest.name)}
+          onHostUnlock={() => {
+            setHostMode(true);
+            setUnlocked(true);
+            setGateMounted(false);
+            toast.info(`Logged in as host. Welcome back.`, {
+              position: "top-center",
+              autoClose: 3000,
+              theme: "colored"
+            });
+          }}
           onUnlock={() => {
             setUnlocked(true);
-            try {
-              toast.success(`Welcome to Nneka & Opeyemi's wedding invitation! ✨`, {
-                position: "top-center",
-                autoClose: 3000,
-                theme: "colored"
-              });
-            } catch (e) {}
             setTimeout(() => {
               setGateMounted(false);
             }, 1200); 
           }}
         />
       )}
-      <Menu open={menu} onClose={() => setMenu(false)} onJump={jumpTo} palette={palette} onRsvp={() => setRsvp(true)}/>
+      <Menu
+        open={menu}
+        onClose={() => setMenu(false)}
+        onJump={jumpTo}
+        palette={palette}
+        onRsvp={() => setRsvp(true)}
+        onHostClick={handleHostLogin}
+      />
       <RsvpSheet open={rsvp} onClose={() => setRsvp(false)} palette={palette} guestName={guestName}/>
     </div>
   );
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', position: 'relative' }}>
       <div style={{ width: '100%', height: '100%', background: palette.ivory }}>
         {appContent}
       </div>

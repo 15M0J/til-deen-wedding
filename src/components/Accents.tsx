@@ -58,12 +58,14 @@ export function Dot({ color = 'currentColor', size = 6, style }: AccentProps) {
 export function Floral({ color = 'currentColor', size = 100, style }: AccentProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={style}>
-      <g stroke={color} strokeWidth="2" fill="none" strokeLinecap="round">
-        {[0, 72, 144, 216, 288].map(a => (
-          <ellipse key={a} cx="50" cy="26" rx="11" ry="18"
-            transform={`rotate(${a} 50 50)`} />
-        ))}
-        <circle cx="50" cy="50" r="6" fill={color}/>
+      <g stroke={color} strokeWidth="1.15" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 91C35 72 45 48 54 15" />
+        <path d="M32 76C23 75 16 69 13 60c10-1 18 3 23 11M41 60c-9-4-14-12-14-22 11 2 17 9 18 18M49 41c-7-7-8-16-4-25 9 6 12 14 9 23" />
+        <path d="M37 70c11-1 20-6 26-15-11-4-20 0-26 10M46 52c11-2 18-9 22-19-12-2-20 3-23 14" />
+        <path d="M54 17c3-8 9-12 16-11 4 7 1 14-7 18-7 4-13 1-9-7Z" />
+        <path d="M62 24c10 4 18 12 22 23M68 31c8-5 16-5 23 0-4 9-12 12-21 6M76 40c8-2 15 1 19 7-6 7-13 8-21 2" />
+        <circle cx="84" cy="49" r="2.2" />
+        <circle cx="89" cy="56" r="1.7" />
       </g>
     </svg>
   );
@@ -143,8 +145,12 @@ export function Bouquet({ color = 'currentColor', colors, size = 100, style }: A
 export function Leaf({ color = 'currentColor', size = 60, style, flip = false }: AccentProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 60 60" fill="none" style={{ ...style, transform: flip ? 'scaleX(-1)' : undefined }}>
-      <path d="M10 50 Q 10 20 45 10 Q 50 35 10 50 Z" stroke={color} strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
-      <path d="M12 48 Q 25 35 42 15" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <g stroke={color} strokeWidth="1.05" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 55C23 43 32 27 40 7" />
+        <path d="M17 47c-7 0-11-3-14-9 7-2 12 0 16 6M23 39c-7-1-11-6-12-12 7 0 12 3 14 9M29 29c-6-3-8-8-7-14 7 2 10 6 10 12" />
+        <path d="M20 44c7 1 13-1 18-7-6-4-12-3-17 3M27 35c7 1 13-2 17-8-7-3-12-1-16 4M34 24c6 0 11-4 14-10-7-2-12 1-15 6" />
+        <path d="M40 8c3-5 7-6 12-4 1 6-2 10-8 11" />
+      </g>
     </svg>
   );
 }
@@ -199,7 +205,7 @@ export function Envelope({ color = 'currentColor', bg = '#FAF6EC', size = 240, a
       <rect x="4" y="24" width="232" height="135" rx="4" fill={bg} stroke={color} strokeWidth="2.4"/>
       <path d="M6 27 L 120 100 L 234 27" stroke={color} strokeWidth="2.4" fill="none" strokeLinejoin="round"/>
       <circle cx="120" cy="100" r="18" fill={accent} stroke={color} strokeWidth="2"/>
-      <text x="120" y="106" textAnchor="middle" fontFamily="'DM Serif Display', serif" fontSize="16" fill={color} fontWeight="700">T&amp;D</text>
+      <text x="120" y="106" textAnchor="middle" fontFamily="'Cormorant Garamond', serif" fontSize="16" fill={color} fontWeight="600">N O</text>
     </svg>
   );
 }
@@ -208,9 +214,13 @@ export function Confetti({ colors = ['#1A2E5C', '#E8B04E', '#D7604C'], count = 3
   const items = React.useMemo(() => {
     return Array.from({ length: count }, (_, i) => {
       const c = colors[i % colors.length];
-      const x = Math.random() * 100;
-      const y = Math.random() * 100;
-      const r = Math.random() * 360;
+      const seeded = (salt: number) => {
+        const value = Math.sin((i + 1) * (12.9898 + salt)) * 43758.5453;
+        return value - Math.floor(value);
+      };
+      const x = seeded(1) * 100;
+      const y = seeded(2) * 100;
+      const r = seeded(3) * 360;
       const shape = i % 3;
       return { c, x, y, r, shape, key: i };
     });
