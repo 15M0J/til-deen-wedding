@@ -1,5 +1,4 @@
 import React from 'react';
-import { toast } from 'react-toastify';
 import { Squiggle, Underline, Sparkle, Dot, Heart } from './Accents';
 
 export interface Palette {

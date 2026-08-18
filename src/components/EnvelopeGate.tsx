@@ -1,6 +1,5 @@
 import React from 'react';
 import { findGuestByCode, type Guest } from '../utils/guestDb';
-import { Floral, Leaf } from './Accents';
 
 interface Palette {
   navy: string;

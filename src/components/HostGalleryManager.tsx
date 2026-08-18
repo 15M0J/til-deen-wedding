@@ -8,7 +8,7 @@ interface HostGalleryManagerProps {
 }
 
 export function HostGalleryManager({ palette }: HostGalleryManagerProps) {
-  const { navy, ivory, gold, coral } = palette;
+  const { navy, gold, coral } = palette;
   const [photos, setPhotos] = React.useState<GalleryPhoto[]>(() => getGalleryPhotos());
   const [search, setSearch] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState<string>('ALL');

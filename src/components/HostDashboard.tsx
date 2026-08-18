@@ -1,5 +1,5 @@
 import React from 'react';
-import { getGuests, saveGuests, addGuest, updateGuest, deleteGuest, resetGuests, clearAllGuests, importGuestsFromCsv, type Guest } from '../utils/guestDb';
+import { getGuests, addGuest, updateGuest, deleteGuest, resetGuests, clearAllGuests, importGuestsFromCsv, type Guest } from '../utils/guestDb';
 import { getStoredTables, type TableDefinition } from '../utils/tableDb';
 import { toast } from 'react-toastify';
 import type { Palette } from './Sections';

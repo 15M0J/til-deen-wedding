@@ -18,7 +18,7 @@ export function Registry({ palette }: SectionProps) {
   const { navy, gold, coral, ivoryDeep, ivory } = palette;
   const [activeTab, setActiveTab] = React.useState<'wishlist' | 'cash' | 'custom'>('wishlist');
   const [wishlist, setWishlist] = React.useState<WishlistItem[]>(() => getWishlist());
-  const [customGifts, setCustomGifts] = React.useState<CustomGiftPledge[]>(() => getCustomGifts());
+  const [, setCustomGifts] = React.useState<CustomGiftPledge[]>(() => getCustomGifts());
 
   // Modal reservation state
   const [reservingItem, setReservingItem] = React.useState<WishlistItem | null>(null);
