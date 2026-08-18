@@ -485,8 +485,8 @@ export function Details({ palette }: SectionProps) {
   const [showCal, setShowCal] = React.useState(false);
 
   const handleCalendarClick = (type: string) => {
-    const title = "Nneka & Opeyemi's Wedding";
-    const details = "We are so excited to celebrate our wedding day with you! Official details, travel tips, and RSVP can be found on our wedding invitation website.";
+    const title = "Til & Deen's Wedding";
+    const details = "We are overjoyed to celebrate our wedding day with you! Official details, schedule, travel guide, and RSVP are on our website: https://til-deen-wedding.vercel.app";
     const location = "The Nest at Guzape Hills, Abuja, Nigeria";
     const start = "20261218";
     const end = "20261219";
@@ -503,7 +503,7 @@ export function Details({ palette }: SectionProps) {
 VERSION:2.0
 PRODID:-//Til meets Deen//Wedding//EN
 BEGIN:VEVENT
-UID:tildeenwedding2026@nneka-opeyemi.com
+UID:tildeenwedding2026@til-deen.com
 DTSTAMP:20260617T000000Z
 DTSTART;VALUE=DATE:${start}
 DTEND;VALUE=DATE:${end}
@@ -525,6 +525,64 @@ END:VCALENDAR`;
     window.open(url, '_blank');
     setShowCal(false);
   };
+
+  const calendarOptions = [
+    {
+      id: 'google',
+      label: 'Google Calendar',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <rect x="3" y="4" width="18" height="17" rx="3.5" fill="#FFFFFF" stroke="#4285F4" strokeWidth="1.6"/>
+          <path d="M3 8.5H21" stroke="#4285F4" strokeWidth="1.6"/>
+          <rect x="7" y="2" width="2" height="3.5" rx="1" fill="#EA4335"/>
+          <rect x="15" y="2" width="2" height="3.5" rx="1" fill="#EA4335"/>
+          <circle cx="8" cy="12.5" r="1.3" fill="#4285F4"/>
+          <circle cx="12" cy="12.5" r="1.3" fill="#34A853"/>
+          <circle cx="16" cy="12.5" r="1.3" fill="#FBBC05"/>
+          <circle cx="8" cy="16.5" r="1.3" fill="#EA4335"/>
+          <circle cx="12" cy="16.5" r="1.3" fill="#4285F4"/>
+          <circle cx="16" cy="16.5" r="1.3" fill="#34A853"/>
+        </svg>
+      )
+    },
+    {
+      id: 'apple',
+      label: 'Apple Calendar (iCal)',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <rect x="3" y="3" width="18" height="18" rx="4.5" fill="#FFFFFF" stroke="#D1D5DB" strokeWidth="1.4"/>
+          <path d="M3 6.5C3 4.567 4.567 3 6.5 3H17.5C19.433 3 21 4.567 21 6.5V8.5H3V6.5Z" fill="#FF3B30"/>
+          <text x="12" y="18" textAnchor="middle" fill="#1C1C1E" fontSize="9.5" fontWeight="800" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">18</text>
+        </svg>
+      )
+    },
+    {
+      id: 'outlook',
+      label: 'Outlook Calendar',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <rect x="3" y="3.5" width="18" height="17" rx="3.5" fill="#0078D4"/>
+          <path d="M3 7C3 5.067 4.567 3.5 6.5 3.5H17.5C19.433 3.5 21 5.067 21 7V9H3V7Z" fill="#005A9E"/>
+          <text x="12" y="17.2" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="900" fontFamily="'Segoe UI', sans-serif">O</text>
+          <rect x="6.5" y="1.5" width="1.8" height="3" rx="0.9" fill="#FFFFFF"/>
+          <rect x="15.5" y="1.5" width="1.8" height="3" rx="0.9" fill="#FFFFFF"/>
+        </svg>
+      )
+    },
+    {
+      id: 'yahoo',
+      label: 'Yahoo Calendar',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <rect x="3" y="3.5" width="18" height="17" rx="3.5" fill="#6001D2"/>
+          <path d="M3 7C3 5.067 4.567 3.5 6.5 3.5H17.5C19.433 3.5 21 5.067 21 7V9H3V7Z" fill="#4B00A4"/>
+          <text x="12" y="17.2" textAnchor="middle" fill="#FFFFFF" fontSize="8.5" fontWeight="900" fontFamily="sans-serif">Y!</text>
+          <rect x="7" y="1.5" width="1.6" height="3" rx="0.8" fill="#FFFFFF"/>
+          <rect x="15.5" y="1.5" width="1.6" height="3" rx="0.8" fill="#FFFFFF"/>
+        </svg>
+      )
+    }
+  ];
 
   return (
     <section style={{ background: ivoryDeep, padding: '40px 22px', position: 'relative', overflow: 'visible', zIndex: showCal ? 5 : 'auto' }}>
@@ -586,20 +644,24 @@ END:VCALENDAR`;
               border: `1.5px solid ${navy}18`,
               background: '#fff',
             }}>
-              {['google', 'apple', 'outlook', 'yahoo'].map(type => (
+              {calendarOptions.map(opt => (
                 <button 
-                  key={type}
-                  onClick={() => handleCalendarClick(type)}
+                  key={opt.id}
+                  onClick={() => handleCalendarClick(opt.id)}
                   style={{
-                    padding: '14px', background: 'none', border: 'none', borderBottom: `1px solid ${navy}08`,
+                    padding: '13px 16px', background: 'none', border: 'none', borderBottom: `1px solid ${navy}08`,
                     fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, color: navy, fontWeight: 600,
-                    textAlign: 'left', cursor: 'pointer', display: 'flex', justifyContent: 'space-between',
+                    textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    transition: 'all 0.2s ease',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = `${gold}15`; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
                 >
-                  <span style={{ textTransform: 'capitalize' }}>{type === 'apple' ? 'Apple iCal' : type}</span>
-                  <span style={{ opacity: 0.45 }}>+</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {opt.icon}
+                    <span>{opt.label}</span>
+                  </div>
+                  <span style={{ opacity: 0.35, fontSize: 16, fontWeight: 400 }}>+</span>
                 </button>
               ))}
             </div>
