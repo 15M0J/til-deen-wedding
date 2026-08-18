@@ -24,13 +24,11 @@ export function Registry({ palette }: SectionProps) {
   const [reservingItem, setReservingItem] = React.useState<WishlistItem | null>(null);
   const [guestNameInput, setGuestNameInput] = React.useState('');
   const [guestEmailInput, setGuestEmailInput] = React.useState('');
-  const [isAnonymousReservation, setIsAnonymousReservation] = React.useState(false);
 
   // Custom Gift Modal state
   const [showCustomGiftModal, setShowCustomGiftModal] = React.useState(false);
   const [customGuestName, setCustomGuestName] = React.useState('');
   const [customGuestEmail, setCustomGuestEmail] = React.useState('');
-  const [isAnonymousCustom, setIsAnonymousCustom] = React.useState(false);
   const [customGiftTitle, setCustomGiftTitle] = React.useState('');
   const [customGiftMessage, setCustomGiftMessage] = React.useState('');
 
@@ -57,77 +55,119 @@ export function Registry({ palette }: SectionProps) {
     }
   };
 
-  const createStoreItemEmailUrl = (item: WishlistItem, userEmail: string) => {
-    const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Gift Reserved: ${item.title} · Nneka & Opeyemi's Wedding`);
-    const body = encodeURIComponent(
-      `Hello!\n\n` +
-      `Thank you for reserving "${item.title}" for Nneka & Opeyemi's Wedding (18 December 2026).\n\n` +
-      `WHERE TO PURCHASE THIS GIFT:\n` +
-      (item.url ? `Store Link: ${item.url}\n\n` : `Store / Voucher: Available in-store or online at your preferred retailer.\n\n`) +
-      `WEDDING WEBSITE:\n` +
-      `You can return to the wedding website anytime here:\n${currentWebsiteUrl}\n\n` +
-      `WEDDING DAY GIFT TABLE:\n` +
-      `Physical boxed gifts will be received at the secure Gift Station at The Nest at Guzape Hills, Abuja on the wedding day.\n\n` +
-      `With our warmest regards,\nNneka Opiti & Opeyemi Jimoh`
-    );
-    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
+  const triggerMailClient = (mailtoUrl: string) => {
+    const link = document.createElement('a');
+    link.href = mailtoUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      if (document.body.contains(link)) {
+        document.body.removeChild(link);
+      }
+    }, 500);
   };
 
-  const createExperienceEmailUrl = (item: WishlistItem, userEmail: string) => {
+  const createStoreItemEmailUrl = (item: WishlistItem, userEmail: string, guestName: string) => {
     const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Contribution Details: ${item.title} · Nneka & Opeyemi's Wedding`);
+    const subject = encodeURIComponent(`Wedding Gift Reserved: ${item.title} (by ${guestName})`);
     const body = encodeURIComponent(
-      `Hello!\n\n` +
-      `Thank you for contributing towards "${item.title}" for Nneka & Opeyemi's Wedding (18 December 2026).\n\n` +
-      `Here are the payment options for your contribution:\n\n` +
-      `NAIRA DIRECT BANK TRANSFER:\n` +
-      `Bank: Guaranty Trust Bank (GTBank)\n` +
-      `Account Name: Muyideen Jimoh\n` +
-      `Account Number: 0157951636\n\n` +
-      `INTERNATIONAL (USD / GBP / EUR / PAYPAL):\n` +
-      `PayPal Pool: https://www.paypal.com/pool/9rNISKnCNI?sr=accr\n` +
-      `PayPal Email: tildeenjimoh@gmail.com\n\n` +
-      `WEDDING WEBSITE:\n` +
-      `${currentWebsiteUrl}\n\n` +
-      `With our warmest regards,\nNneka Opiti & Opeyemi Jimoh`
+      `Hello Til & Deen,\n\n` +
+      `I have reserved the following gift from your wedding registry:\n\n` +
+      `GIFT DETAILS:\n` +
+      `Item: ${item.title}\n` +
+      (item.price ? `Price / Estimate: ${item.price}\n` : '') +
+      (item.url ? `Store Link: ${item.url}\n\n` : `Store / Voucher: Available in-store or online.\n\n`) +
+      `GUEST DETAILS:\n` +
+      `Name: ${guestName}\n` +
+      `Email: ${userEmail}\n\n` +
+      `DELIVERY / GIFT STATION:\n` +
+      `Physical gifts will be delivered to the Gift Station at The Nest at Guzape Hills, Abuja on Friday, 18 December 2026.\n\n` +
+      `Wedding Website: ${currentWebsiteUrl}\n\n` +
+      `With all our love and congratulations!`
     );
-    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
+    return `mailto:tildeenjimoh@gmail.com?cc=${encodeURIComponent(userEmail)}&subject=${subject}&body=${body}`;
+  };
+
+  const createExperienceEmailUrl = (item: WishlistItem, userEmail: string, guestName: string) => {
+    const currentWebsiteUrl = window.location.href;
+    const subject = encodeURIComponent(`Wedding Gift Contribution: ${item.title} (by ${guestName})`);
+    const body = encodeURIComponent(
+      `Hello Til & Deen,\n\n` +
+      `I am contributing towards "${item.title}" for your wedding celebration!\n\n` +
+      `GUEST DETAILS:\n` +
+      `Name: ${guestName}\n` +
+      `Email: ${userEmail}\n\n` +
+      `PAYMENT OPTIONS USED:\n\n` +
+      `[ ] NAIRA DIRECT BANK TRANSFER:\n` +
+      `    Bank: Guaranty Trust Bank (GTBank)\n` +
+      `    Account Name: Muyideen Jimoh\n` +
+      `    Account Number: 0157951636\n\n` +
+      `[ ] INTERNATIONAL (USD / GBP / EUR / PAYPAL):\n` +
+      `    PayPal Pool: https://www.paypal.com/pool/9rNISKnCNI?sr=accr\n` +
+      `    PayPal Email: tildeenjimoh@gmail.com\n\n` +
+      `Wedding Website: ${currentWebsiteUrl}\n\n` +
+      `Wishing you both a lifetime of happiness!`
+    );
+    return `mailto:tildeenjimoh@gmail.com?cc=${encodeURIComponent(userEmail)}&subject=${subject}&body=${body}`;
+  };
+
+  const createCustomGiftEmailUrl = (giftTitle: string, userEmail: string, guestName: string, message?: string) => {
+    const currentWebsiteUrl = window.location.href;
+    const subject = encodeURIComponent(`Custom Wedding Gift Pledge: ${giftTitle} (by ${guestName})`);
+    const body = encodeURIComponent(
+      `Hello Til & Deen,\n\n` +
+      `I would love to honour you with a custom / off-list wedding gift!\n\n` +
+      `GIFT DETAILS:\n` +
+      `Gift Description: ${giftTitle}\n` +
+      (message ? `Personal Message / Note: ${message}\n\n` : '\n') +
+      `GUEST DETAILS:\n` +
+      `Name: ${guestName}\n` +
+      `Email: ${userEmail}\n\n` +
+      `Wedding Website: ${currentWebsiteUrl}\n\n` +
+      `Can't wait to celebrate with you both on 18 December 2026!`
+    );
+    return `mailto:tildeenjimoh@gmail.com?cc=${encodeURIComponent(userEmail)}&subject=${subject}&body=${body}`;
   };
 
   const handleConfirmReservation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reservingItem) return;
 
-    if (!isAnonymousReservation && !guestNameInput.trim()) {
-      toast.error('Please enter your name or check "Give anonymously".');
+    const trimmedName = guestNameInput.trim();
+    const trimmedEmail = guestEmailInput.trim();
+
+    if (!trimmedName) {
+      toast.error('Please enter your name.');
       return;
     }
 
-    if (!guestEmailInput.trim()) {
+    if (!trimmedEmail) {
       toast.error('Please enter your email address.');
       return;
     }
 
-    const finalName = isAnonymousReservation ? (guestNameInput.trim() || 'A Well-Wisher') : guestNameInput.trim();
     const result = reserveWishlistItem(
       reservingItem.id,
-      finalName,
-      guestEmailInput.trim(),
-      isAnonymousReservation
+      trimmedName,
+      trimmedEmail,
+      false
     );
 
     if (result.success) {
       if (reservingItem.category === 'EXPERIENCE') {
-        window.location.href = createExperienceEmailUrl(reservingItem, guestEmailInput.trim());
-        toast.success(`Thank you, ${finalName}! Contribution confirmed. Payment details sent to your email.`, { autoClose: 5000 });
+        triggerMailClient(createExperienceEmailUrl(reservingItem, trimmedEmail, trimmedName));
+        toast.success('Contribution confirmed! Payment details have been sent to your email.', { autoClose: 5000 });
       } else {
-        window.location.href = createStoreItemEmailUrl(reservingItem, guestEmailInput.trim());
-        toast.success(`Thank you, ${finalName}! "${reservingItem.title}" reserved. Store link sent to your email.`, { autoClose: 5000 });
+        triggerMailClient(createStoreItemEmailUrl(reservingItem, trimmedEmail, trimmedName));
+        toast.success('Gift successfully reserved! Details have been sent to your email.', { autoClose: 5000 });
       }
 
       setWishlist(getWishlist());
       setReservingItem(null);
+      setGuestNameInput('');
+      setGuestEmailInput('');
     } else {
       toast.error(result.message);
     }
@@ -135,33 +175,43 @@ export function Registry({ palette }: SectionProps) {
 
   const handleConfirmCustomGift = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customGiftTitle.trim()) {
+    const trimmedTitle = customGiftTitle.trim();
+    const trimmedName = customGuestName.trim();
+    const trimmedEmail = customGuestEmail.trim();
+    const trimmedMsg = customGiftMessage.trim();
+
+    if (!trimmedTitle) {
       toast.error('Please describe your gift.');
       return;
     }
 
-    if (!isAnonymousCustom && !customGuestName.trim()) {
-      toast.error('Please enter your name or check "Give anonymously".');
+    if (!trimmedName) {
+      toast.error('Please enter your name.');
       return;
     }
 
-    if (!customGuestEmail.trim()) {
+    if (!trimmedEmail) {
       toast.error('Please enter your email address.');
       return;
     }
 
-    const finalName = isAnonymousCustom ? (customGuestName.trim() || 'A Well-Wisher') : customGuestName.trim();
     addCustomGiftPledge(
-      finalName,
-      customGiftTitle.trim(),
-      customGuestEmail.trim(),
-      isAnonymousCustom,
-      customGiftMessage.trim()
+      trimmedName,
+      trimmedTitle,
+      trimmedEmail,
+      false,
+      trimmedMsg
     );
 
-    toast.success(`Thank you, ${finalName}! Your custom gift pledge has been noted.`, { autoClose: 5000 });
+    triggerMailClient(createCustomGiftEmailUrl(trimmedTitle, trimmedEmail, trimmedName, trimmedMsg));
+    toast.success('Gift pledge submitted! Details have been sent to your email.', { autoClose: 5000 });
+
     setCustomGifts(getCustomGifts());
     setShowCustomGiftModal(false);
+    setCustomGiftTitle('');
+    setCustomGuestName('');
+    setCustomGuestEmail('');
+    setCustomGiftMessage('');
   };
 
   const tabStyle = (tabName: 'cash' | 'wishlist' | 'custom'): React.CSSProperties => ({
@@ -291,7 +341,6 @@ export function Registry({ palette }: SectionProps) {
                         setReservingItem(item);
                         setGuestNameInput('');
                         setGuestEmailInput('');
-                        setIsAnonymousReservation(false);
                       }}
                       style={{
                         marginTop: 2, padding: '9px 14px', background: navy, color: ivory,
@@ -341,7 +390,6 @@ export function Registry({ palette }: SectionProps) {
                   setShowCustomGiftModal(true);
                   setCustomGuestName('');
                   setCustomGuestEmail('');
-                  setIsAnonymousCustom(false);
                   setCustomGiftTitle('');
                   setCustomGiftMessage('');
                 }}
@@ -507,7 +555,6 @@ export function Registry({ palette }: SectionProps) {
                   setShowCustomGiftModal(true);
                   setCustomGuestName('');
                   setCustomGuestEmail('');
-                  setIsAnonymousCustom(false);
                   setCustomGiftTitle('');
                   setCustomGiftMessage('');
                 }}
@@ -574,33 +621,20 @@ export function Registry({ palette }: SectionProps) {
             <form onSubmit={handleConfirmReservation} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label style={{ display: 'block', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: navy, marginBottom: 4 }}>
-                  Your Name (or Family Name)
+                  Your Name (or Family Name) *
                 </label>
                 <input
                   type="text"
-                  placeholder={isAnonymousReservation ? "Anonymous Well-Wisher" : "e.g. Adaeze Obi"}
+                  required
+                  placeholder="e.g. Adaeze Obi"
                   value={guestNameInput}
-                  disabled={isAnonymousReservation}
                   onChange={(e) => setGuestNameInput(e.target.value)}
                   style={{
                     width: '100%', padding: '10px 12px', borderRadius: 8,
-                    border: `1.5px solid ${navy}`, background: isAnonymousReservation ? '#f3f4f6' : '#fff',
+                    border: `1.5px solid ${navy}`, background: '#fff',
                     fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: navy, outline: 'none'
                   }}
                 />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="checkbox"
-                  id="anonCheck"
-                  checked={isAnonymousReservation}
-                  onChange={(e) => setIsAnonymousReservation(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: navy, cursor: 'pointer' }}
-                />
-                <label htmlFor="anonCheck" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: navy, cursor: 'pointer', fontWeight: 600 }}>
-                  Give anonymously (Only Nneka &amp; Opeyemi will know)
-                </label>
               </div>
 
               <div>
@@ -685,39 +719,26 @@ export function Registry({ palette }: SectionProps) {
             </div>
 
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: navy, opacity: 0.8, marginBottom: 14 }}>
-              Let Nneka &amp; Opeyemi know what surprise or personal gift you are planning so they can anticipate it with joy.
+              Let Til &amp; Deen know what surprise or personal gift you are planning so they can anticipate it with joy.
             </p>
 
             <form onSubmit={handleConfirmCustomGift} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label style={{ display: 'block', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: navy, marginBottom: 4 }}>
-                  Your Name (or Family Name)
+                  Your Name (or Family Name) *
                 </label>
                 <input
                   type="text"
-                  placeholder={isAnonymousCustom ? "Anonymous Well-Wisher" : "e.g. Lanre & Praise"}
+                  required
+                  placeholder="e.g. Lanre & Praise"
                   value={customGuestName}
-                  disabled={isAnonymousCustom}
                   onChange={(e) => setCustomGuestName(e.target.value)}
                   style={{
                     width: '100%', padding: '10px 12px', borderRadius: 8,
-                    border: `1.5px solid ${navy}`, background: isAnonymousCustom ? '#f3f4f6' : '#fff',
+                    border: `1.5px solid ${navy}`, background: '#fff',
                     fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: navy, outline: 'none'
                   }}
                 />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="checkbox"
-                  id="anonCustomCheck"
-                  checked={isAnonymousCustom}
-                  onChange={(e) => setIsAnonymousCustom(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: navy, cursor: 'pointer' }}
-                />
-                <label htmlFor="anonCustomCheck" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: navy, cursor: 'pointer', fontWeight: 600 }}>
-                  Pledge anonymously
-                </label>
               </div>
 
               <div>
