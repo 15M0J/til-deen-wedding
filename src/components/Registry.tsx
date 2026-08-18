@@ -24,11 +24,13 @@ export function Registry({ palette }: SectionProps) {
   const [reservingItem, setReservingItem] = React.useState<WishlistItem | null>(null);
   const [guestNameInput, setGuestNameInput] = React.useState('');
   const [guestEmailInput, setGuestEmailInput] = React.useState('');
+  const [isAnonymousReservation, setIsAnonymousReservation] = React.useState(false);
 
   // Custom Gift Modal state
   const [showCustomGiftModal, setShowCustomGiftModal] = React.useState(false);
   const [customGuestName, setCustomGuestName] = React.useState('');
   const [customGuestEmail, setCustomGuestEmail] = React.useState('');
+  const [isAnonymousCustom, setIsAnonymousCustom] = React.useState(false);
   const [customGiftTitle, setCustomGiftTitle] = React.useState('');
   const [customGiftMessage, setCustomGiftMessage] = React.useState('');
 
@@ -71,96 +73,91 @@ export function Registry({ palette }: SectionProps) {
 
   const createStoreItemEmailUrl = (item: WishlistItem, userEmail: string, guestName: string) => {
     const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Wedding Gift Reserved: ${item.title} (by ${guestName})`);
+    const subject = encodeURIComponent(`Gift Reserved: ${item.title} · Til & Deen's Wedding`);
+    const greeting = guestName && guestName !== 'Anonymous' ? `Hello ${guestName},` : 'Hello,';
     const body = encodeURIComponent(
-      `Hello Til & Deen,\n\n` +
-      `I have reserved the following gift from your wedding registry:\n\n` +
+      `${greeting}\n\n` +
+      `Thank you for reserving "${item.title}" for Til & Deen's Wedding (Friday, 18 December 2026)!\n\n` +
       `GIFT DETAILS:\n` +
       `Item: ${item.title}\n` +
       (item.price ? `Price / Estimate: ${item.price}\n` : '') +
-      (item.url ? `Store Link: ${item.url}\n\n` : `Store / Voucher: Available in-store or online.\n\n`) +
-      `GUEST DETAILS:\n` +
-      `Name: ${guestName}\n` +
-      `Email: ${userEmail}\n\n` +
-      `DELIVERY / GIFT STATION:\n` +
-      `Physical gifts will be delivered to the Gift Station at The Nest at Guzape Hills, Abuja on Friday, 18 December 2026.\n\n` +
-      `Wedding Website: ${currentWebsiteUrl}\n\n` +
-      `With all our love and congratulations!`
+      (item.url ? `Store Link: ${item.url}\n\n` : `Store / Voucher: Available in-store or online at your preferred retailer.\n\n`) +
+      `GIFT STATION & DROP-OFF:\n` +
+      `Physical boxed gifts will be received at the secure Gift Station at The Nest at Guzape Hills, Abuja on the wedding day.\n\n` +
+      `WEDDING WEBSITE:\n` +
+      `${currentWebsiteUrl}\n\n` +
+      `With all our love,\nTil & Deen`
     );
-    return `mailto:tildeenjimoh@gmail.com?cc=${encodeURIComponent(userEmail)}&subject=${subject}&body=${body}`;
+    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
   };
 
   const createExperienceEmailUrl = (item: WishlistItem, userEmail: string, guestName: string) => {
     const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Wedding Gift Contribution: ${item.title} (by ${guestName})`);
+    const subject = encodeURIComponent(`Contribution Details: ${item.title} · Til & Deen's Wedding`);
+    const greeting = guestName && guestName !== 'Anonymous' ? `Hello ${guestName},` : 'Hello,';
     const body = encodeURIComponent(
-      `Hello Til & Deen,\n\n` +
-      `I am contributing towards "${item.title}" for your wedding celebration!\n\n` +
-      `GUEST DETAILS:\n` +
-      `Name: ${guestName}\n` +
-      `Email: ${userEmail}\n\n` +
-      `PAYMENT OPTIONS USED:\n\n` +
-      `[ ] NAIRA DIRECT BANK TRANSFER:\n` +
-      `    Bank: Guaranty Trust Bank (GTBank)\n` +
-      `    Account Name: Muyideen Jimoh\n` +
-      `    Account Number: 0157951636\n\n` +
-      `[ ] INTERNATIONAL (USD / GBP / EUR / PAYPAL):\n` +
-      `    PayPal Pool: https://www.paypal.com/pool/9rNISKnCNI?sr=accr\n` +
-      `    PayPal Email: tildeenjimoh@gmail.com\n\n` +
-      `Wedding Website: ${currentWebsiteUrl}\n\n` +
-      `Wishing you both a lifetime of happiness!`
+      `${greeting}\n\n` +
+      `Thank you so much for your contribution towards "${item.title}" for Til & Deen's Wedding (Friday, 18 December 2026)!\n\n` +
+      `PAYMENT OPTIONS FOR YOUR CONTRIBUTION:\n\n` +
+      `1. NAIRA DIRECT BANK TRANSFER:\n` +
+      `   Bank: Guaranty Trust Bank (GTBank)\n` +
+      `   Account Name: Muyideen Jimoh\n` +
+      `   Account Number: 0157951636\n\n` +
+      `2. INTERNATIONAL (USD / GBP / EUR / PAYPAL):\n` +
+      `   PayPal Pool: https://www.paypal.com/pool/9rNISKnCNI?sr=accr\n` +
+      `   PayPal Email: tildeenjimoh@gmail.com\n\n` +
+      `WEDDING WEBSITE:\n` +
+      `${currentWebsiteUrl}\n\n` +
+      `With all our love,\nTil & Deen`
     );
-    return `mailto:tildeenjimoh@gmail.com?cc=${encodeURIComponent(userEmail)}&subject=${subject}&body=${body}`;
+    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
   };
 
   const createCustomGiftEmailUrl = (giftTitle: string, userEmail: string, guestName: string, message?: string) => {
     const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Custom Wedding Gift Pledge: ${giftTitle} (by ${guestName})`);
+    const subject = encodeURIComponent(`Custom Gift Pledge: ${giftTitle} · Til & Deen's Wedding`);
+    const greeting = guestName && guestName !== 'Anonymous' ? `Hello ${guestName},` : 'Hello,';
     const body = encodeURIComponent(
-      `Hello Til & Deen,\n\n` +
-      `I would love to honour you with a custom / off-list wedding gift!\n\n` +
-      `GIFT DETAILS:\n` +
-      `Gift Description: ${giftTitle}\n` +
-      (message ? `Personal Message / Note: ${message}\n\n` : '\n') +
-      `GUEST DETAILS:\n` +
-      `Name: ${guestName}\n` +
-      `Email: ${userEmail}\n\n` +
-      `Wedding Website: ${currentWebsiteUrl}\n\n` +
-      `Can't wait to celebrate with you both on 18 December 2026!`
+      `${greeting}\n\n` +
+      `Thank you so much for your thoughtful custom gift pledge ("${giftTitle}") for Til & Deen's Wedding (Friday, 18 December 2026)!\n\n` +
+      (message ? `Your Note: "${message}"\n\n` : '') +
+      `GIFT STATION & DROP-OFF:\n` +
+      `Physical gifts will be received at the secure Gift Station at The Nest at Guzape Hills, Abuja on the wedding day.\n\n` +
+      `WEDDING WEBSITE:\n` +
+      `${currentWebsiteUrl}\n\n` +
+      `With all our love,\nTil & Deen`
     );
-    return `mailto:tildeenjimoh@gmail.com?cc=${encodeURIComponent(userEmail)}&subject=${subject}&body=${body}`;
+    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
   };
 
   const handleConfirmReservation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reservingItem) return;
 
-    const trimmedName = guestNameInput.trim();
-    const trimmedEmail = guestEmailInput.trim();
-
-    if (!trimmedName) {
-      toast.error('Please enter your name.');
+    if (!isAnonymousReservation && !guestNameInput.trim()) {
+      toast.error('Please enter your name or check "Give anonymously".');
       return;
     }
 
-    if (!trimmedEmail) {
+    if (!guestEmailInput.trim()) {
       toast.error('Please enter your email address.');
       return;
     }
 
+    const finalName = isAnonymousReservation ? (guestNameInput.trim() || 'Anonymous') : guestNameInput.trim();
     const result = reserveWishlistItem(
       reservingItem.id,
-      trimmedName,
-      trimmedEmail,
-      false
+      finalName,
+      guestEmailInput.trim(),
+      isAnonymousReservation
     );
 
     if (result.success) {
       if (reservingItem.category === 'EXPERIENCE') {
-        triggerMailClient(createExperienceEmailUrl(reservingItem, trimmedEmail, trimmedName));
+        triggerMailClient(createExperienceEmailUrl(reservingItem, guestEmailInput.trim(), finalName));
         toast.success('Contribution confirmed! Payment details have been sent to your email.', { autoClose: 5000 });
       } else {
-        triggerMailClient(createStoreItemEmailUrl(reservingItem, trimmedEmail, trimmedName));
+        triggerMailClient(createStoreItemEmailUrl(reservingItem, guestEmailInput.trim(), finalName));
         toast.success('Gift successfully reserved! Details have been sent to your email.', { autoClose: 5000 });
       }
 
@@ -168,6 +165,7 @@ export function Registry({ palette }: SectionProps) {
       setReservingItem(null);
       setGuestNameInput('');
       setGuestEmailInput('');
+      setIsAnonymousReservation(false);
     } else {
       toast.error(result.message);
     }
@@ -176,7 +174,6 @@ export function Registry({ palette }: SectionProps) {
   const handleConfirmCustomGift = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedTitle = customGiftTitle.trim();
-    const trimmedName = customGuestName.trim();
     const trimmedEmail = customGuestEmail.trim();
     const trimmedMsg = customGiftMessage.trim();
 
@@ -185,8 +182,8 @@ export function Registry({ palette }: SectionProps) {
       return;
     }
 
-    if (!trimmedName) {
-      toast.error('Please enter your name.');
+    if (!isAnonymousCustom && !customGuestName.trim()) {
+      toast.error('Please enter your name or check "Pledge anonymously".');
       return;
     }
 
@@ -195,15 +192,16 @@ export function Registry({ palette }: SectionProps) {
       return;
     }
 
+    const finalName = isAnonymousCustom ? (customGuestName.trim() || 'Anonymous') : customGuestName.trim();
     addCustomGiftPledge(
-      trimmedName,
+      finalName,
       trimmedTitle,
       trimmedEmail,
-      false,
+      isAnonymousCustom,
       trimmedMsg
     );
 
-    triggerMailClient(createCustomGiftEmailUrl(trimmedTitle, trimmedEmail, trimmedName, trimmedMsg));
+    triggerMailClient(createCustomGiftEmailUrl(trimmedTitle, trimmedEmail, finalName, trimmedMsg));
     toast.success('Gift pledge submitted! Details have been sent to your email.', { autoClose: 5000 });
 
     setCustomGifts(getCustomGifts());
@@ -212,6 +210,7 @@ export function Registry({ palette }: SectionProps) {
     setCustomGuestName('');
     setCustomGuestEmail('');
     setCustomGiftMessage('');
+    setIsAnonymousCustom(false);
   };
 
   const tabStyle = (tabName: 'cash' | 'wishlist' | 'custom'): React.CSSProperties => ({
@@ -621,20 +620,33 @@ export function Registry({ palette }: SectionProps) {
             <form onSubmit={handleConfirmReservation} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label style={{ display: 'block', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: navy, marginBottom: 4 }}>
-                  Your Name (or Family Name) *
+                  Your Name (or Family Name)
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. Adaeze Obi"
+                  placeholder={isAnonymousReservation ? "Anonymous" : "e.g. Adaeze Obi"}
                   value={guestNameInput}
+                  disabled={isAnonymousReservation}
                   onChange={(e) => setGuestNameInput(e.target.value)}
                   style={{
                     width: '100%', padding: '10px 12px', borderRadius: 8,
-                    border: `1.5px solid ${navy}`, background: '#fff',
+                    border: `1.5px solid ${navy}`, background: isAnonymousReservation ? '#f3f4f6' : '#fff',
                     fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: navy, outline: 'none'
                   }}
                 />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="checkbox"
+                  id="anonCheck"
+                  checked={isAnonymousReservation}
+                  onChange={(e) => setIsAnonymousReservation(e.target.checked)}
+                  style={{ width: 16, height: 16, accentColor: navy, cursor: 'pointer' }}
+                />
+                <label htmlFor="anonCheck" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: navy, cursor: 'pointer', fontWeight: 600 }}>
+                  Give anonymously
+                </label>
               </div>
 
               <div>
@@ -725,20 +737,33 @@ export function Registry({ palette }: SectionProps) {
             <form onSubmit={handleConfirmCustomGift} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label style={{ display: 'block', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: navy, marginBottom: 4 }}>
-                  Your Name (or Family Name) *
+                  Your Name (or Family Name)
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. Lanre & Praise"
+                  placeholder={isAnonymousCustom ? "Anonymous" : "e.g. Lanre & Praise"}
                   value={customGuestName}
+                  disabled={isAnonymousCustom}
                   onChange={(e) => setCustomGuestName(e.target.value)}
                   style={{
                     width: '100%', padding: '10px 12px', borderRadius: 8,
-                    border: `1.5px solid ${navy}`, background: '#fff',
+                    border: `1.5px solid ${navy}`, background: isAnonymousCustom ? '#f3f4f6' : '#fff',
                     fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: navy, outline: 'none'
                   }}
                 />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="checkbox"
+                  id="anonCustomCheck"
+                  checked={isAnonymousCustom}
+                  onChange={(e) => setIsAnonymousCustom(e.target.checked)}
+                  style={{ width: 16, height: 16, accentColor: navy, cursor: 'pointer' }}
+                />
+                <label htmlFor="anonCustomCheck" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: navy, cursor: 'pointer', fontWeight: 600 }}>
+                  Pledge anonymously
+                </label>
               </div>
 
               <div>
