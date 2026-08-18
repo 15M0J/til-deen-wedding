@@ -13,6 +13,7 @@ import {
 } from '../utils/registryDb';
 export { type WishlistItem, DEFAULT_WISHLIST };
 import { toast } from 'react-toastify';
+import { sendGiftReservationEmail } from '../utils/emailService';
 
 export function Registry({ palette }: SectionProps) {
   const { navy, gold, coral, ivoryDeep, ivory } = palette;
@@ -57,79 +58,6 @@ export function Registry({ palette }: SectionProps) {
     }
   };
 
-  const triggerMailClient = (mailtoUrl: string) => {
-    const link = document.createElement('a');
-    link.href = mailtoUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => {
-      if (document.body.contains(link)) {
-        document.body.removeChild(link);
-      }
-    }, 500);
-  };
-
-  const createStoreItemEmailUrl = (item: WishlistItem, userEmail: string, guestName: string) => {
-    const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Gift Reserved: ${item.title} · Til & Deen's Wedding`);
-    const greeting = guestName && guestName !== 'Anonymous' ? `Hello ${guestName},` : 'Hello,';
-    const body = encodeURIComponent(
-      `${greeting}\n\n` +
-      `Thank you for reserving "${item.title}" for Til & Deen's Wedding (Friday, 18 December 2026)!\n\n` +
-      `GIFT DETAILS:\n` +
-      `Item: ${item.title}\n` +
-      (item.price ? `Price / Estimate: ${item.price}\n` : '') +
-      (item.url ? `Store Link: ${item.url}\n\n` : `Store / Voucher: Available in-store or online at your preferred retailer.\n\n`) +
-      `GIFT STATION & DROP-OFF:\n` +
-      `Physical boxed gifts will be received at the secure Gift Station at The Nest at Guzape Hills, Abuja on the wedding day.\n\n` +
-      `WEDDING WEBSITE:\n` +
-      `${currentWebsiteUrl}\n\n` +
-      `With all our love,\nTil & Deen`
-    );
-    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
-  };
-
-  const createExperienceEmailUrl = (item: WishlistItem, userEmail: string, guestName: string) => {
-    const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Contribution Details: ${item.title} · Til & Deen's Wedding`);
-    const greeting = guestName && guestName !== 'Anonymous' ? `Hello ${guestName},` : 'Hello,';
-    const body = encodeURIComponent(
-      `${greeting}\n\n` +
-      `Thank you so much for your contribution towards "${item.title}" for Til & Deen's Wedding (Friday, 18 December 2026)!\n\n` +
-      `PAYMENT OPTIONS FOR YOUR CONTRIBUTION:\n\n` +
-      `1. NAIRA DIRECT BANK TRANSFER:\n` +
-      `   Bank: Guaranty Trust Bank (GTBank)\n` +
-      `   Account Name: Muyideen Jimoh\n` +
-      `   Account Number: 0157951636\n\n` +
-      `2. INTERNATIONAL (USD / GBP / EUR / PAYPAL):\n` +
-      `   PayPal Pool: https://www.paypal.com/pool/9rNISKnCNI?sr=accr\n` +
-      `   PayPal Email: tildeenjimoh@gmail.com\n\n` +
-      `WEDDING WEBSITE:\n` +
-      `${currentWebsiteUrl}\n\n` +
-      `With all our love,\nTil & Deen`
-    );
-    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
-  };
-
-  const createCustomGiftEmailUrl = (giftTitle: string, userEmail: string, guestName: string, message?: string) => {
-    const currentWebsiteUrl = window.location.href;
-    const subject = encodeURIComponent(`Custom Gift Pledge: ${giftTitle} · Til & Deen's Wedding`);
-    const greeting = guestName && guestName !== 'Anonymous' ? `Hello ${guestName},` : 'Hello,';
-    const body = encodeURIComponent(
-      `${greeting}\n\n` +
-      `Thank you so much for your thoughtful custom gift pledge ("${giftTitle}") for Til & Deen's Wedding (Friday, 18 December 2026)!\n\n` +
-      (message ? `Your Note: "${message}"\n\n` : '') +
-      `GIFT STATION & DROP-OFF:\n` +
-      `Physical gifts will be received at the secure Gift Station at The Nest at Guzape Hills, Abuja on the wedding day.\n\n` +
-      `WEDDING WEBSITE:\n` +
-      `${currentWebsiteUrl}\n\n` +
-      `With all our love,\nTil & Deen`
-    );
-    return `mailto:${encodeURIComponent(userEmail)}?subject=${subject}&body=${body}`;
-  };
-
   const handleConfirmReservation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reservingItem) return;
@@ -153,11 +81,19 @@ export function Registry({ palette }: SectionProps) {
     );
 
     if (result.success) {
+      // Send background automated email to guest (no device popups)
+      sendGiftReservationEmail({
+        toEmail: guestEmailInput.trim(),
+        guestName: finalName,
+        itemTitle: reservingItem.title,
+        category: reservingItem.category,
+        itemUrl: reservingItem.url,
+        itemPrice: reservingItem.price,
+      });
+
       if (reservingItem.category === 'EXPERIENCE') {
-        triggerMailClient(createExperienceEmailUrl(reservingItem, guestEmailInput.trim(), finalName));
         toast.success('Contribution confirmed! Payment details have been sent to your email.', { autoClose: 5000 });
       } else {
-        triggerMailClient(createStoreItemEmailUrl(reservingItem, guestEmailInput.trim(), finalName));
         toast.success('Gift successfully reserved! Details have been sent to your email.', { autoClose: 5000 });
       }
 
@@ -201,7 +137,15 @@ export function Registry({ palette }: SectionProps) {
       trimmedMsg
     );
 
-    triggerMailClient(createCustomGiftEmailUrl(trimmedTitle, trimmedEmail, finalName, trimmedMsg));
+    // Send background automated email to guest (no device popups)
+    sendGiftReservationEmail({
+      toEmail: trimmedEmail,
+      guestName: finalName,
+      itemTitle: trimmedTitle,
+      category: 'CUSTOM',
+      message: trimmedMsg,
+    });
+
     toast.success('Gift pledge submitted! Details have been sent to your email.', { autoClose: 5000 });
 
     setCustomGifts(getCustomGifts());
