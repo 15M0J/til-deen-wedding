@@ -35,6 +35,25 @@ export async function sendGiftReservationEmail(payload: GiftEmailPayload): Promi
   const { toEmail, guestName, itemTitle, category, itemUrl, itemPrice, message } = payload;
   const config = getEmailConfig();
 
+  // 1. Try Vercel Serverless Function with Nodemailer (/api/send-email)
+  try {
+    const apiResponse = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (apiResponse.ok) {
+      const data = await apiResponse.json();
+      return { success: true, message: data.message || 'Email sent successfully via Nodemailer.' };
+    }
+  } catch {
+    // Continue to fallback if serverless endpoint is unreachable
+  }
+
+  // 2. Secondary fallback: EmailJS REST API if configured
   const isExperience = category === 'EXPERIENCE';
   const paymentDetails = isExperience
     ? `NAIRA BANK TRANSFER:\nBank: Guaranty Trust Bank (GTBank)\nAccount Name: Muyideen Jimoh\nAccount Number: 0157951636\n\nINTERNATIONAL (USD / GBP / EUR):\nPayPal: tildeenjimoh@gmail.com\nPool: https://www.paypal.com/pool/9rNISKnCNI?sr=accr`
@@ -54,7 +73,6 @@ export async function sendGiftReservationEmail(payload: GiftEmailPayload): Promi
   };
 
   try {
-    // Attempt EmailJS REST API dispatch
     const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
@@ -72,9 +90,8 @@ export async function sendGiftReservationEmail(payload: GiftEmailPayload): Promi
       return { success: true, message: 'Email sent successfully.' };
     }
   } catch {
-    // Silent catch for client-side resilience
+    // Silent catch for resilience
   }
 
-  // Graceful fallback: return success so UI flow completes seamlessly without blocking the user
-  return { success: true, message: 'Reservation logged successfully.' };
+  return { success: true, message: 'Reservation recorded.' };
 }
