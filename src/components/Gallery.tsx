@@ -8,13 +8,16 @@ interface GalleryProps {
 
 type ColorFilter = 'warm-gold' | 'film-35mm' | 'classic-bw' | 'natural';
 
+const INITIAL_COUNT = 6;
+const STEP_COUNT = 6;
+
 export function Gallery({ palette }: GalleryProps) {
   const { navy, gold, coral, ivory, ivoryDeep } = palette;
   
   const [photos, setPhotos] = React.useState<GalleryPhoto[]>(() => getGalleryPhotos());
   const [selectedCategory, setSelectedCategory] = React.useState<string>('ALL');
   const [activeFilter, setActiveFilter] = React.useState<ColorFilter>('warm-gold');
-  const [visibleCount, setVisibleCount] = React.useState(12);
+  const [visibleCount, setVisibleCount] = React.useState(INITIAL_COUNT);
   const [activePhotoIndex, setActivePhotoIndex] = React.useState<number | null>(null);
 
   const loadData = React.useCallback(() => {
@@ -139,7 +142,7 @@ export function Gallery({ palette }: GalleryProps) {
                   key={cat.id}
                   onClick={() => {
                     setSelectedCategory(cat.id);
-                    setVisibleCount(12);
+                    setVisibleCount(INITIAL_COUNT);
                   }}
                   className="px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer"
                   style={{
@@ -276,22 +279,57 @@ export function Gallery({ palette }: GalleryProps) {
           })}
         </div>
 
-        {/* Load More Button */}
-        {hasMore && (
-          <div className="text-center mt-10">
+        {/* View More / Show Less Controls */}
+        {hasMore ? (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-10">
             <button
-              onClick={() => setVisibleCount(prev => prev + 12)}
-              className="px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 hover-lift shadow-xs cursor-pointer"
+              onClick={() => setVisibleCount(prev => prev + STEP_COUNT)}
+              className="px-7 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 hover-lift shadow-sm cursor-pointer flex items-center gap-2"
               style={{
                 backgroundColor: navy,
                 color: ivory,
                 border: `1.5px solid ${navy}`,
               }}
             >
-              Load More Moments ({filteredPhotos.length - visibleCount} remaining)
+              <span>View More Moments</span>
+              <span style={{ opacity: 0.8, fontSize: 11 }}>
+                (+{Math.min(STEP_COUNT, filteredPhotos.length - visibleCount)} of {filteredPhotos.length - visibleCount} left)
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            
+            <button
+              onClick={() => setVisibleCount(filteredPhotos.length)}
+              className="px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 hover:bg-black/5 cursor-pointer"
+              style={{
+                backgroundColor: 'transparent',
+                color: navy,
+                border: `1.2px dashed ${navy}60`,
+              }}
+            >
+              View All ({filteredPhotos.length})
             </button>
           </div>
-        )}
+        ) : filteredPhotos.length > INITIAL_COUNT ? (
+          <div className="text-center mt-10">
+            <button
+              onClick={() => {
+                setVisibleCount(INITIAL_COUNT);
+                document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 hover:bg-black/5 cursor-pointer"
+              style={{
+                backgroundColor: 'transparent',
+                color: navy,
+                border: `1px solid ${navy}40`,
+              }}
+            >
+              Show Less ↑
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {/* FULLSCREEN LIGHTBOX MODAL */}
